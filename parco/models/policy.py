@@ -15,6 +15,7 @@ from .decoding_strategies import (
     parco_get_decoding_strategy,
 )
 from .encoder import MatNetEncoder, PARCOEncoder
+from .nn.clipping import get_attention_sdpa
 from .utils import get_log_likelihood
 
 log = get_pylogger(__name__)
@@ -58,6 +59,10 @@ class PARCOPolicy(nn.Module):
         use_pos_token: bool = False,  # Add a POS (pause-of-sequence) action
         trainable_pos_token: bool = True,  # If true, then the pos token is trainable
         # two_stage_pos_sampling: bool = True,  # new, faster
+        tanh_clipping: float = 10.0,  # C for the decoder logit clipping
+        tanh_clip_mode: str = "fixed",  # "fixed": C*tanh(z), "scaled": C*tanh(z/C)
+        attn_tanh_clipping: float = 0.0,  # C for the encoder MHA logits; 0 disables
+        attn_tanh_clip_mode: str = "scaled",  # clipping form for the encoder MHA logits
         parallel_gated_kwargs: dict = None,  # ParallelGatedMLP kwargs
         sdpa_fn_decoder: (
             Callable | str
@@ -77,6 +82,14 @@ class PARCOPolicy(nn.Module):
 
         self.env_name = env_name
 
+        # Tanh clipping of the decoder logits, forwarded to the decoding strategy
+        self.tanh_clipping = tanh_clipping
+        self.tanh_clip_mode = tanh_clip_mode
+
+        # Tanh clipping of the attention logits inside the encoder MHA layers.
+        # None means "keep rl4co's default SDPA", i.e. no clipping as in vanilla PARCO
+        sdpa_fn_encoder = get_attention_sdpa(attn_tanh_clipping, attn_tanh_clip_mode)
+
         # Encoder and decoder
         if encoder is None:
             log.info("Initializing default PARCOEncoder")
@@ -92,6 +105,7 @@ class PARCOPolicy(nn.Module):
                 norm_after=norm_after,
                 use_pos_token=use_pos_token,
                 trainable_pos_token=trainable_pos_token,
+                sdpa_fn=sdpa_fn_encoder,
                 parallel_gated_kwargs=parallel_gated_kwargs,
             )
         else:
@@ -156,6 +170,9 @@ class PARCOPolicy(nn.Module):
 
         # Setup decoding strategy
         # we pop arguments that are not part of the decoding strategy
+        # (an explicit decoding kwarg still wins over the policy-level default)
+        decoding_kwargs.setdefault("tanh_clipping", self.tanh_clipping)
+        decoding_kwargs.setdefault("tanh_clip_mode", self.tanh_clip_mode)
         decode_strategy: PARCODecodingStrategy = parco_get_decoding_strategy(
             decode_type,
             num_agents=num_agents,
