@@ -1,0 +1,94 @@
+# @package _global_
+
+# HCVRP with the scaled tanh clipping form  phi_scaled(z; C) = C * tanh(z / C)
+# instead of PARCO's  phi_fixed(z; C) = C * tanh(z),  applied to
+#   1. the decoder logits (where PARCO already clips), and
+#   2. the attention logits inside the encoder MHA layers (where it does not clip at all).
+#
+# Everything else is identical to `experiment=hcvrp`, so this is a clean A/B.
+#
+# Sweep the clipping constant / form from the command line, e.g.
+#   python train.py experiment=hcvrp_tanh_scaled model.policy.tanh_clipping=5 model.policy.attn_tanh_clipping=5
+#   python train.py experiment=hcvrp_tanh_scaled model.policy.tanh_clip_mode=fixed model.policy.attn_tanh_clip_mode=fixed
+# The wandb run name (and hence the checkpoint directory) is derived from these,
+# so different settings never overwrite each other.
+
+# Override defaults: take configs from relative path
+defaults:
+  - override /model: parco.yaml
+  - override /env: hcvrp.yaml
+  - override /callbacks: default.yaml
+  - override /trainer: default.yaml
+  # - override /logger: null # comment this line to enable logging
+  - override /logger: wandb.yaml
+
+
+# NOTE: other hparams are in the env file
+generator_params:
+  num_loc: 100 # max locs
+  num_agents: 7 # min locs
+
+# Model hyperparameters
+model:
+  policy: # note: all other arguments (e.g. embeddings) are automatically taken from the env
+    # otherwise, you may pass init_embedding / context_embedding (example below)
+    _target_: "parco.models.policy.PARCOPolicy"
+    env_name: "${env.name}"
+    agent_handler: "highprob"
+    embed_dim: 128
+    norm_after: false # true means we use Kool structure, which seems slightly worse
+    normalization: "rms"
+    use_final_norm: true # LLM way
+    # --- tanh clipping (this experiment) ---
+    tanh_clipping: 10 # C for the decoder logits (PARCO default: 10)
+    tanh_clip_mode: "scaled" # "fixed" = C*tanh(z) (PARCO), "scaled" = C*tanh(z/C)
+    attn_tanh_clipping: 10 # C for the encoder MHA logits (PARCO: no clipping at all)
+    attn_tanh_clip_mode: "scaled" # set attn_tanh_clipping=0 to disable this half
+    # ---------------------------------------
+    parallel_gated_kwargs:
+      mlp_activation: "silu" # use MLP as in LLaMa
+    context_embedding_kwargs:
+      normalization: "rms"
+      norm_after: false # true means we use Kool structure, which seems slightly worse
+      use_final_norm: true # LLM way
+      parallel_gated_kwargs:
+        mlp_activation: "silu"
+  batch_size: 128
+  val_batch_size: ${model.batch_size}
+  test_batch_size: ${model.batch_size}
+  train_data_size: 100_000
+  val_data_size: 10_000
+  test_data_size: 10_000
+  optimizer_kwargs:
+    lr: 1e-4
+    weight_decay: 0.0
+  lr_scheduler:
+    "MultiStepLR"
+  lr_scheduler_kwargs:
+    milestones: [80, 95]
+    gamma: 0.1
+  num_augment: 8
+  train_min_agents: 3
+  train_max_agents: ${env.generator_params.num_agents} # max agents is the number of agents
+  train_min_size: 60
+  train_max_size: ${env.generator_params.num_loc} # max size is the number of locations
+
+# Logging: we use Wandb in this case
+logger:
+  wandb:
+    project: "parco-${env.name}"
+    tags: ["parco", "${env.name}", "communication", "tanh_clipping"]
+    group: "${env.name}_n${env.generator_params.num_loc}_m${env.generator_params.num_agents}"
+    # Name encodes the clipping setting so a C sweep writes to separate run dirs
+    name: "parco_tanh_${model.policy.tanh_clip_mode}_c${model.policy.tanh_clipping}_attn_${model.policy.attn_tanh_clip_mode}_c${model.policy.attn_tanh_clipping}"
+
+# Trainer: this is a customized version of the PyTorch Lightning trainer.
+trainer:
+  max_epochs: 100
+
+seed: 1234
+
+# Used to save the best model. However, we are not using this in the current setup
+callbacks:
+  model_checkpoint:
+    monitor: "val/reward/n60_m5"
