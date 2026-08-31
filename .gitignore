@@ -1,14 +1,14 @@
 # data and log
-.data/
-lightning_logs/
-*.npz
-logs/
-outputs/
-/data/
-/notebooks/data/
+# .data/
+# lightning_logs/
+# *.npz
+# logs/
+# outputs/
+# /data/
+# /notebooks/data/
 
 # Checkpoints
-checkpoints/
+# checkpoints/
 
 
 #cache
