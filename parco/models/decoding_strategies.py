@@ -20,6 +20,8 @@ def parco_get_decoding_strategy(decoding_strategy, **config):
         "greedy": Greedy,
         "sampling": Sampling,
         "evaluate": Evaluate,
+        "sequential_greedy": SequentialGreedy,
+        "sequential_sampling": SequentialSampling,
     }
 
     if "multistart" in decoding_strategy:
@@ -280,6 +282,100 @@ class Evaluate(PARCODecodingStrategy):
         """The action is provided externally, so we just return the action"""
         selected = action
         return logprobs, selected, td
+
+
+class SequentialDecodingStrategy(PARCODecodingStrategy):
+    """Fully autoregressive (sequential) decoding.
+
+    PARCO lets all ``M`` agents propose an action in parallel from ``M`` separate
+    per-agent softmaxes, and repairs the collisions afterwards with a conflict
+    handler. Here we instead treat the ``[B, M, N]`` logits as a *single* joint
+    action space over ``(agent, node)`` pairs: exactly one pair is committed per
+    environment step, every other agent repeats its current node, and the decoder
+    is re-run on the updated state before the next pair is chosen.
+
+    Re-running the decoder is what makes this sequential rather than a reordering:
+    the decoder is a deterministic function of the state, so without advancing the
+    environment in between, a second forward pass would return identical logits.
+
+    Consequences, all of which are the point of the ablation:
+
+    - construction takes ``sum_m T_m`` steps instead of ``max_m T_m``, so this is
+      slower by roughly a factor of ``M`` -- the latency side of the comparison;
+    - conflicts cannot occur, so no conflict handler runs and the halting ratio
+      is exactly 0 by construction (a useful correctness check);
+    - the collected logprobs are those of the true joint AR factorization
+      ``p(a) = prod_t p(agent_t, node_t | s_t)``, so the actions that are scored
+      are exactly the actions that are executed.
+
+    Note that ``top_p`` / ``top_k`` filtering is not applied here; only
+    temperature and tanh clipping are.
+    """
+
+    def _select_flat(self, flat_logprobs: torch.Tensor) -> torch.Tensor:
+        """Pick one flattened (agent, node) index per instance. Returns [B]."""
+        raise NotImplementedError("Must be implemented by subclass")
+
+    def step(
+        self,
+        logits: torch.Tensor,
+        mask: torch.Tensor,
+        td: TensorDict = None,
+        agent_handler_kwargs: dict = {},
+        **kwargs,
+    ) -> TensorDict:
+        self.iter_count += 1
+        batch_size, _, num_nodes = logits.shape
+
+        if self.tanh_clipping > 0:
+            logits = self.tanh_clipping * torch.tanh(logits)
+        logits = logits.masked_fill(~mask, -torch.inf)
+
+        # One joint log-softmax over all M*N pairs, instead of one per agent
+        flat_logprobs = F.log_softmax(
+            logits.reshape(batch_size, -1) / self.temperature, dim=-1
+        )
+
+        # Commit a single (agent, node) pair
+        flat_action = self._select_flat(flat_logprobs)  # [B]
+        selected_logprob = flat_logprobs.gather(1, flat_action[:, None]).squeeze(1)
+        agent_idx = torch.div(flat_action, num_nodes, rounding_mode="floor")
+        node_idx = flat_action % num_nodes
+
+        # Every other agent repeats its current node: the env treats this as a
+        # no-op (zero distance, demand not counted twice) via its stay_flag
+        actions = td["current_node"].clone()
+        actions.scatter_(1, agent_idx[:, None], node_idx[:, None])
+
+        # Only the agent that actually decided contributes to the likelihood;
+        # the imposed no-ops are not policy decisions and must not be reinforced
+        logprobs = torch.zeros_like(actions, dtype=selected_logprob.dtype)
+        logprobs.scatter_(1, agent_idx[:, None], selected_logprob[:, None])
+
+        # No conflict is possible, so the handler is skipped entirely
+        self.halting_ratios.append(torch.zeros((), device=logits.device))
+
+        td.set("action", actions)
+        self.actions.append(actions)
+        self.logprobs.append(logprobs)
+        return td
+
+    def _step(self, logprobs, mask, td, action=None, **kwargs):
+        """Unused: ``step`` is overridden wholesale."""
+
+
+class SequentialGreedy(SequentialDecodingStrategy):
+    name = "sequential_greedy"
+
+    def _select_flat(self, flat_logprobs: torch.Tensor) -> torch.Tensor:
+        return flat_logprobs.argmax(dim=-1)
+
+
+class SequentialSampling(SequentialDecodingStrategy):
+    name = "sequential_sampling"
+
+    def _select_flat(self, flat_logprobs: torch.Tensor) -> torch.Tensor:
+        return torch.distributions.Categorical(logits=flat_logprobs).sample()
 
 
 class PARCO4FFSPDecoding(PARCODecodingStrategy):

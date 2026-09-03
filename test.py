@@ -30,7 +30,7 @@ if __name__ == "__main__":
         "--decode_type",
         type=str,
         default="greedy",
-        help="Decoding type. Available: greedy, sampling",
+        help="Decoding type. Available: greedy, sampling, sequential_greedy, sequential_sampling",
     )
     parser.add_argument(
         "--sample_size",
@@ -64,7 +64,7 @@ if __name__ == "__main__":
             problem is not None
         ), "Problem must be specified if checkpoint is not provided"
         checkpoint_path = f"./checkpoints/{problem}/parco.ckpt"
-    if decode_type == "greedy":
+    if "greedy" in decode_type:
         assert (
             sample_size == 1 or sample_size is None
         ), "Greedy decoding only uses 1 sample"
@@ -83,7 +83,7 @@ if __name__ == "__main__":
         data_paths = [f"./data/{problem}/{f}" for f in os.listdir(f"./data/{problem}")]
     else:
         data_paths = [opts.datasets] if isinstance(opts.datasets, str) else opts.datasets
-    if decode_type == "sampling":
+    if "sampling" in decode_type:
         assert (
             sample_size is not None
         ), "Sample size must be specified for sampling decoding with --sample_size"
@@ -149,7 +149,7 @@ if __name__ == "__main__":
                     )
                     end_time = time.time()
                     inference_time = end_time - start_time
-                    if decode_type == "greedy":
+                    if "greedy" in decode_type:
                         costs.extend(-out["reward"])
                     else:
                         costs.extend(
