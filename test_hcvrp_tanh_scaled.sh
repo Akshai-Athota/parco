@@ -5,7 +5,7 @@
 #SBATCH --mail-user=athota@uni-hildesheim.de
 #SBATCH --mail-type=ALL
 #SBATCH --partition=STUD
-#SBATCH --gres=gpu:6
+#SBATCH --gres=gpu:3
 
 
 source .venv/bin/activate

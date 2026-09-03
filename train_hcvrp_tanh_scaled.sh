@@ -20,6 +20,7 @@ source .venv/bin/activate
 # The run directory is derived from these values, so runs never collide.
 
 srun python train.py experiment=hcvrp_tanh_scaled \
+    logger.wandb.offline=True \
     model.policy.tanh_clipping=10 \
     model.policy.tanh_clip_mode=scaled \
     model.policy.attn_tanh_clipping=10 \
