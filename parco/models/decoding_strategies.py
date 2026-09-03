@@ -326,15 +326,33 @@ class SequentialDecodingStrategy(PARCODecodingStrategy):
     ) -> TensorDict:
         self.iter_count += 1
         batch_size, _, num_nodes = logits.shape
+        current_node = td["current_node"]
+
+        # An agent may not re-select the node it is standing on. Such a pick is a
+        # no-op, so the state would be unchanged and the next decoder pass would
+        # return identical logits -- the loop would never terminate. Visited
+        # customers are already masked by the env, but an agent sitting at its
+        # depot is allowed to re-select that depot, which is exactly that trap.
+        # Forbidding it guarantees every committed action advances the state.
+        mask = mask.clone()
+        mask.scatter_(-1, current_node[..., None], False)
 
         if self.tanh_clipping > 0:
             logits = self.tanh_clipping * torch.tanh(logits)
         logits = logits.masked_fill(~mask, -torch.inf)
+        flat_logits = logits.reshape(batch_size, -1)
+
+        # An instance whose agents have all returned to the depot after visiting
+        # every customer has no legal move left. It simply idles until the rest
+        # of the batch finishes; the neutral row keeps log_softmax from producing
+        # NaNs, and its result is discarded below.
+        idle = ~torch.isfinite(flat_logits).any(dim=-1)  # [B]
+        flat_logits = torch.where(
+            idle[:, None], torch.zeros_like(flat_logits), flat_logits
+        )
 
         # One joint log-softmax over all M*N pairs, instead of one per agent
-        flat_logprobs = F.log_softmax(
-            logits.reshape(batch_size, -1) / self.temperature, dim=-1
-        )
+        flat_logprobs = F.log_softmax(flat_logits / self.temperature, dim=-1)
 
         # Commit a single (agent, node) pair
         flat_action = self._select_flat(flat_logprobs)  # [B]
@@ -344,13 +362,15 @@ class SequentialDecodingStrategy(PARCODecodingStrategy):
 
         # Every other agent repeats its current node: the env treats this as a
         # no-op (zero distance, demand not counted twice) via its stay_flag
-        actions = td["current_node"].clone()
+        actions = current_node.clone()
         actions.scatter_(1, agent_idx[:, None], node_idx[:, None])
+        actions = torch.where(idle[:, None], current_node, actions)
 
         # Only the agent that actually decided contributes to the likelihood;
         # the imposed no-ops are not policy decisions and must not be reinforced
         logprobs = torch.zeros_like(actions, dtype=selected_logprob.dtype)
         logprobs.scatter_(1, agent_idx[:, None], selected_logprob[:, None])
+        logprobs = torch.where(idle[:, None], torch.zeros_like(logprobs), logprobs)
 
         # No conflict is possible, so the handler is skipped entirely
         self.halting_ratios.append(torch.zeros((), device=logits.device))
