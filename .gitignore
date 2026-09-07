@@ -178,3 +178,7 @@ cython_debug/
 
 # VSCode debug launch file
 .vscode/
+
+# `ENV/` above matches configs/env/ on case-insensitive filesystems (Windows),
+# which silently drops new environment configs from commits. Keep them tracked.
+!configs/env/

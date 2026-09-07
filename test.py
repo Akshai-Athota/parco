@@ -8,7 +8,7 @@ import torch
 from rl4co.data.utils import load_npz_to_tensordict
 from tqdm.auto import tqdm
 
-from parco.envs import FFSPEnv, HCVRPEnv, OMDCPDPEnv
+from parco.envs import CVRPEnv, FFSPEnv, HCVRPEnv, OMDCPDPEnv
 from parco.models import PARCORLModule
 from parco.tasks.eval import get_dataloader
 
@@ -19,7 +19,7 @@ torch.set_float32_matmul_precision("medium")
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--problem", type=str, default="hcvrp", help="Problem name: hcvrp, omdcpdp, etc."
+        "--problem", type=str, default="hcvrp", help="Problem name: hcvrp, cvrp, omdcpdp, ffsp"
     )
     parser.add_argument(
         "--datasets",
@@ -70,6 +70,11 @@ if __name__ == "__main__":
         ), "Greedy decoding only uses 1 sample"
     if opts.datasets is None:
         assert problem is not None, "Problem must be specified if dataset is not provided"
+        if not os.path.exists(f"./data/{problem}") and problem == "cvrp":
+            raise FileNotFoundError(
+                "./data/cvrp not found. The CVRP datasets are generated locally, "
+                "not published on HuggingFace: run `python scripts/generate_cvrp_data.py` first."
+            )
         if not os.path.exists(f"./data/{problem}"):
             print("Data not found, downloading from HuggingFace...")
             from huggingface_hub import snapshot_download
@@ -110,6 +115,8 @@ if __name__ == "__main__":
     )
     if problem == "hcvrp":
         env = HCVRPEnv()
+    elif problem == "cvrp":
+        env = CVRPEnv()
     elif problem == "omdcpdp":
         env = OMDCPDPEnv()
     elif problem == "ffsp":

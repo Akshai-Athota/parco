@@ -117,6 +117,34 @@ def generate_hcvrp_data(dataset_size, graph_size, num_agents=3):
     return data
 
 
+def generate_cvrp_data(dataset_size, graph_size, num_agents=3, capacity=50.0):
+    """Min-max CVRP with a homogeneous fleet.
+
+    Same instance distribution as :func:`generate_hcvrp_data` -- uniform
+    locations, integer demands in [1, 9] -- except that every vehicle shares one
+    capacity and unit speed, so the objective is the longest route length.
+    Note that we set the seed outside of this function.
+    """
+
+    loc = np.random.uniform(0, 1, size=(dataset_size, graph_size + 1, 2))
+    depot = loc[:, -1]
+    cust = loc[:, :-1]
+    d = np.random.randint(1, 10, [dataset_size, graph_size])
+
+    # Homogeneous fleet: identical capacity and unit speed for every vehicle
+    cap = np.full((dataset_size, num_agents), capacity)
+    speed = np.ones((dataset_size, num_agents))
+
+    data = {
+        "depot": depot.astype(np.float32),
+        "locs": cust.astype(np.float32),
+        "demand": d.astype(np.float32),
+        "capacity": cap.astype(np.float32),
+        "speed": speed.astype(np.float32),
+    }
+    return data
+
+
 def generate_dataset(
     filename=None,
     data_dir="data",

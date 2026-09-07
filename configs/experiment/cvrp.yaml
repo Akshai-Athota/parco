@@ -1,0 +1,89 @@
+# @package _global_
+
+# Min-max CVRP with a HOMOGENEOUS fleet: cap_m = cap for every vehicle m, unit
+# speed, objective min max_m L_m.
+#
+# This is the generalisation test for PARCO: if parallel decoding only helps on
+# heterogeneous fleets it is a niche trick, and if it also wins here it is a
+# general mechanism. Nothing in the model changes -- encoder, communication
+# layers, decoder, conflict handler and training loop are all untouched. The
+# only new code is the environment and its generator.
+#
+# Run `python scripts/generate_cvrp_data.py` once before training: the
+# validation and test sets are generated locally, not downloaded.
+
+# Override defaults: take configs from relative path
+defaults:
+  - override /model: parco.yaml
+  - override /env: cvrp.yaml
+  - override /callbacks: default.yaml
+  - override /trainer: default.yaml
+  # - override /logger: null # comment this line to enable logging
+  - override /logger: wandb.yaml
+
+
+# NOTE: other hparams are in the env file
+generator_params:
+  num_loc: 100 # max locs
+  num_agents: 7 # max agents
+
+# Model hyperparameters
+model:
+  policy: # note: all other arguments (e.g. embeddings) are automatically taken from the env
+    _target_: "parco.models.policy.PARCOPolicy"
+    env_name: "${env.name}"
+    agent_handler: "highprob"
+    embed_dim: 128
+    norm_after: false # true means we use Kool structure, which seems slightly worse
+    normalization: "rms"
+    use_final_norm: true # LLM way
+    init_embedding_kwargs:
+      # Normalise the capacity feature by the fleet capacity, exactly as HCVRP
+      # normalises by its maximum capacity. Feature scaling only, not a model change.
+      demand_scaler: ${env.generator_params.capacity}
+    parallel_gated_kwargs:
+      mlp_activation: "silu" # use MLP as in LLaMa
+    context_embedding_kwargs:
+      normalization: "rms"
+      norm_after: false # true means we use Kool structure, which seems slightly worse
+      use_final_norm: true # LLM way
+      parallel_gated_kwargs:
+        mlp_activation: "silu"
+  batch_size: 128
+  val_batch_size: ${model.batch_size}
+  test_batch_size: ${model.batch_size}
+  train_data_size: 100_000
+  val_data_size: 10_000
+  test_data_size: 10_000
+  optimizer_kwargs:
+    lr: 1e-4
+    weight_decay: 0.0
+  lr_scheduler:
+    "MultiStepLR"
+  lr_scheduler_kwargs:
+    milestones: [80, 95]
+    gamma: 0.1
+  num_augment: 8
+  train_min_agents: 3
+  train_max_agents: ${env.generator_params.num_agents} # max agents is the number of agents
+  train_min_size: 50
+  train_max_size: ${env.generator_params.num_loc} # max size is the number of locations
+
+# Logging: we use Wandb in this case
+logger:
+  wandb:
+    project: "parco-${env.name}"
+    tags: ["parco", "${env.name}", "communication", "homogeneous"]
+    group: "${env.name}_n${env.generator_params.num_loc}_m${env.generator_params.num_agents}"
+    name: "parco_cvrp"
+
+# Trainer: this is a customized version of the PyTorch Lightning trainer.
+trainer:
+  max_epochs: 100
+
+seed: 1234
+
+# Used to save the best model. However, we are not using this in the current setup
+callbacks:
+  model_checkpoint:
+    monitor: "val/reward/n50_m5"
