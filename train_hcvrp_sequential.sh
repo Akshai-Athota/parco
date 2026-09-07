@@ -5,7 +5,7 @@
 #SBATCH --mail-user=athota@uni-hildesheim.de
 #SBATCH --mail-type=ALL
 #SBATCH --partition=STUD
-#SBATCH --gres=gpu:8
+#SBATCH --gres=gpu:6
 
 
 source .venv/bin/activate
@@ -25,5 +25,5 @@ srun python train.py experiment=hcvrp_sequential \
     model.val_batch_size=16 \
     model.test_batch_size=16 \
     model.num_augment=4 \
-    +model.dataloader_num_workers=7 \
+    +model.dataloader_num_workers=5 \
     +trainer.accumulate_grad_batches=8
