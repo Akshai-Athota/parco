@@ -1,0 +1,16 @@
+{"time":"2026-09-07T19:38:14.667191264+02:00","level":"INFO","msg":"stream: starting","core version":"0.19.10","symlink path":"/home/athota/parco/logs/train/runs/cvrp_n100_m7/parco_cvrp/2026-09-07_19-38-11/wandb/offline-run-20260907_193814-xnpkp5aw/logs/debug-core.log"}
+{"time":"2026-09-07T19:38:14.790565918+02:00","level":"WARN","msg":"GraphQL client is nil, skipping feature loading"}
+{"time":"2026-09-07T19:38:14.791602163+02:00","level":"INFO","msg":"created new stream","id":"xnpkp5aw"}
+{"time":"2026-09-07T19:38:14.791621462+02:00","level":"INFO","msg":"stream: started","id":"xnpkp5aw"}
+{"time":"2026-09-07T19:38:14.79165275+02:00","level":"INFO","msg":"writer: Do: started","stream_id":"xnpkp5aw"}
+{"time":"2026-09-07T19:38:14.791683022+02:00","level":"INFO","msg":"sender: started","stream_id":"xnpkp5aw"}
+{"time":"2026-09-07T19:38:14.791671545+02:00","level":"INFO","msg":"handler: started","stream_id":"xnpkp5aw"}
+{"time":"2026-09-07T19:38:14.796807979+02:00","level":"INFO","msg":"Starting system monitor"}
+{"time":"2026-09-08T18:14:36.47024304+02:00","level":"INFO","msg":"Stopping system monitor"}
+{"time":"2026-09-08T18:14:36.470554704+02:00","level":"INFO","msg":"Stopped system monitor"}
+{"time":"2026-09-08T18:14:36.4714031+02:00","level":"INFO","msg":"handler: operation stats","stats":{}}
+{"time":"2026-09-08T18:14:36.476222397+02:00","level":"INFO","msg":"stream: closing","id":"xnpkp5aw"}
+{"time":"2026-09-08T18:14:36.476256233+02:00","level":"INFO","msg":"handler: closed","stream_id":"xnpkp5aw"}
+{"time":"2026-09-08T18:14:36.476271557+02:00","level":"INFO","msg":"writer: Close: closed","stream_id":"xnpkp5aw"}
+{"time":"2026-09-08T18:14:36.476294902+02:00","level":"INFO","msg":"sender: closed","stream_id":"xnpkp5aw"}
+{"time":"2026-09-08T18:14:36.477735208+02:00","level":"INFO","msg":"stream: closed","id":"xnpkp5aw"}

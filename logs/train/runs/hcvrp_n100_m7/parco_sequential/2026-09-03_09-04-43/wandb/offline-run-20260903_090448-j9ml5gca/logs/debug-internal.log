@@ -1,0 +1,16 @@
+{"time":"2026-09-03T09:04:50.222050654+02:00","level":"INFO","msg":"stream: starting","core version":"0.19.10","symlink path":"/home/athota/parco/logs/train/runs/hcvrp_n100_m7/parco_sequential/2026-09-03_09-04-43/wandb/offline-run-20260903_090448-j9ml5gca/logs/debug-core.log"}
+{"time":"2026-09-03T09:04:50.570833819+02:00","level":"WARN","msg":"GraphQL client is nil, skipping feature loading"}
+{"time":"2026-09-03T09:04:50.572497978+02:00","level":"INFO","msg":"created new stream","id":"j9ml5gca"}
+{"time":"2026-09-03T09:04:50.572542629+02:00","level":"INFO","msg":"stream: started","id":"j9ml5gca"}
+{"time":"2026-09-03T09:04:50.572613926+02:00","level":"INFO","msg":"writer: Do: started","stream_id":"j9ml5gca"}
+{"time":"2026-09-03T09:04:50.572781354+02:00","level":"INFO","msg":"handler: started","stream_id":"j9ml5gca"}
+{"time":"2026-09-03T09:04:50.573789005+02:00","level":"INFO","msg":"sender: started","stream_id":"j9ml5gca"}
+{"time":"2026-09-03T09:04:50.584667225+02:00","level":"INFO","msg":"Starting system monitor"}
+{"time":"2026-09-03T11:12:02.602794274+02:00","level":"INFO","msg":"Stopping system monitor"}
+{"time":"2026-09-03T11:12:02.603174644+02:00","level":"INFO","msg":"Stopped system monitor"}
+{"time":"2026-09-03T11:12:02.618819276+02:00","level":"INFO","msg":"handler: operation stats","stats":{}}
+{"time":"2026-09-03T11:12:02.62499054+02:00","level":"INFO","msg":"stream: closing","id":"j9ml5gca"}
+{"time":"2026-09-03T11:12:02.6250239+02:00","level":"INFO","msg":"handler: closed","stream_id":"j9ml5gca"}
+{"time":"2026-09-03T11:12:02.625040002+02:00","level":"INFO","msg":"writer: Close: closed","stream_id":"j9ml5gca"}
+{"time":"2026-09-03T11:12:02.625134353+02:00","level":"INFO","msg":"sender: closed","stream_id":"j9ml5gca"}
+{"time":"2026-09-03T11:12:02.626160911+02:00","level":"INFO","msg":"stream: closed","id":"j9ml5gca"}

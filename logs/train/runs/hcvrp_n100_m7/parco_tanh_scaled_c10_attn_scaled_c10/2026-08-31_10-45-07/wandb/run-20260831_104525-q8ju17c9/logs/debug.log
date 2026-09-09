@@ -1,0 +1,99 @@
+2026-08-31 10:45:25,681 INFO    MainThread:833143 [wandb_setup.py:_flush():68] Current SDK version is 0.19.10
+2026-08-31 10:45:25,681 INFO    MainThread:833143 [wandb_setup.py:_flush():68] Configure stats pid to 833143
+2026-08-31 10:45:25,681 INFO    MainThread:833143 [wandb_setup.py:_flush():68] Loading settings from /home/athota/.config/wandb/settings
+2026-08-31 10:45:25,681 INFO    MainThread:833143 [wandb_setup.py:_flush():68] Loading settings from /home/athota/parco/wandb/settings
+2026-08-31 10:45:25,681 INFO    MainThread:833143 [wandb_setup.py:_flush():68] Loading settings from environment variables
+2026-08-31 10:45:25,681 INFO    MainThread:833143 [wandb_init.py:setup_run_log_directory():724] Logging user logs to /home/athota/parco/logs/train/runs/hcvrp_n100_m7/parco_tanh_scaled_c10_attn_scaled_c10/2026-08-31_10-45-07/wandb/run-20260831_104525-q8ju17c9/logs/debug.log
+2026-08-31 10:45:25,681 INFO    MainThread:833143 [wandb_init.py:setup_run_log_directory():725] Logging internal logs to /home/athota/parco/logs/train/runs/hcvrp_n100_m7/parco_tanh_scaled_c10_attn_scaled_c10/2026-08-31_10-45-07/wandb/run-20260831_104525-q8ju17c9/logs/debug-internal.log
+2026-08-31 10:45:25,682 INFO    MainThread:833143 [wandb_init.py:init():852] calling init triggers
+2026-08-31 10:45:25,682 INFO    MainThread:833143 [wandb_init.py:init():857] wandb.init called with sweep_config: {}
+config: {'_wandb': {}}
+2026-08-31 10:45:25,682 INFO    MainThread:833143 [wandb_init.py:init():893] starting backend
+2026-08-31 10:45:25,682 INFO    MainThread:833143 [wandb_init.py:init():897] sending inform_init request
+2026-08-31 10:45:25,733 INFO    MainThread:833143 [backend.py:_multiprocessing_setup():101] multiprocessing start_methods=fork,spawn,forkserver, using: spawn
+2026-08-31 10:45:25,733 INFO    MainThread:833143 [wandb_init.py:init():907] backend started and connected
+2026-08-31 10:45:25,738 INFO    MainThread:833143 [wandb_init.py:init():1002] updated telemetry
+2026-08-31 10:45:25,761 INFO    MainThread:833143 [wandb_init.py:init():1026] communicating run to backend with 90.0 second timeout
+2026-08-31 10:46:01,832 INFO    Thread-2 (wrapped_target):833143 [retry.py:__call__():175] [no run ID] Retry attempt failed:
+Traceback (most recent call last):
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/urllib3/connection.py", line 198, in _new_conn
+    sock = connection.create_connection(
+        (self._dns_host, self.port),
+    ...<2 lines>...
+        socket_options=self.socket_options,
+    )
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/urllib3/util/connection.py", line 60, in create_connection
+    for res in socket.getaddrinfo(host, port, family, socket.SOCK_STREAM):
+               ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/athota/miniconda3/lib/python3.13/socket.py", line 977, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+               ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+socket.gaierror: [Errno -3] Temporary failure in name resolution
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/urllib3/connectionpool.py", line 787, in urlopen
+    response = self._make_request(
+        conn,
+    ...<10 lines>...
+        **response_kw,
+    )
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/urllib3/connectionpool.py", line 488, in _make_request
+    raise new_e
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/urllib3/connectionpool.py", line 464, in _make_request
+    self._validate_conn(conn)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/urllib3/connectionpool.py", line 1093, in _validate_conn
+    conn.connect()
+    ~~~~~~~~~~~~^^
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/urllib3/connection.py", line 704, in connect
+    self.sock = sock = self._new_conn()
+                       ~~~~~~~~~~~~~~^^
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/urllib3/connection.py", line 205, in _new_conn
+    raise NameResolutionError(self.host, self, e) from e
+urllib3.exceptions.NameResolutionError: <urllib3.connection.HTTPSConnection object at 0x7b6fce99dd10>: Failed to resolve 'api.wandb.ai' ([Errno -3] Temporary failure in name resolution)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/requests/adapters.py", line 667, in send
+    resp = conn.urlopen(
+        method=request.method,
+    ...<9 lines>...
+        chunked=chunked,
+    )
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/urllib3/connectionpool.py", line 841, in urlopen
+    retries = retries.increment(
+        method, url, error=new_e, _pool=self, _stacktrace=sys.exc_info()[2]
+    )
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/urllib3/util/retry.py", line 519, in increment
+    raise MaxRetryError(_pool, url, reason) from reason  # type: ignore[arg-type]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+urllib3.exceptions.MaxRetryError: HTTPSConnectionPool(host='api.wandb.ai', port=443): Max retries exceeded with url: /graphql (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7b6fce99dd10>: Failed to resolve 'api.wandb.ai' ([Errno -3] Temporary failure in name resolution)"))
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/wandb/sdk/lib/retry.py", line 134, in __call__
+    result = self._call_fn(*args, **kwargs)
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/wandb/sdk/internal/internal_api.py", line 402, in execute
+    return self.client.execute(*args, **kwargs)  # type: ignore
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/wandb/vendor/gql-0.2.0/wandb_gql/client.py", line 52, in execute
+    result = self._get_result(document, *args, **kwargs)
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/wandb/vendor/gql-0.2.0/wandb_gql/client.py", line 60, in _get_result
+    return self.transport.execute(document, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/wandb/sdk/lib/gql_request.py", line 58, in execute
+    request = self.session.post(self.url, **post_args)
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/requests/sessions.py", line 637, in post
+    return self.request("POST", url, data=data, json=json, **kwargs)
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/requests/sessions.py", line 589, in request
+    resp = self.send(prep, **send_kwargs)
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/requests/sessions.py", line 703, in send
+    r = adapter.send(request, **kwargs)
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/requests/adapters.py", line 700, in send
+    raise ConnectionError(e, request=request)
+requests.exceptions.ConnectionError: HTTPSConnectionPool(host='api.wandb.ai', port=443): Max retries exceeded with url: /graphql (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7b6fce99dd10>: Failed to resolve 'api.wandb.ai' ([Errno -3] Temporary failure in name resolution)"))
