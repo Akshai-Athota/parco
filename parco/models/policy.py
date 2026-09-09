@@ -58,6 +58,7 @@ class PARCOPolicy(nn.Module):
         use_pos_token: bool = False,  # Add a POS (pause-of-sequence) action
         trainable_pos_token: bool = True,  # If true, then the pos token is trainable
         # two_stage_pos_sampling: bool = True,  # new, faster
+        max_steps: int = 1_000_000,  # Safety bound on the decoding loop
         parallel_gated_kwargs: dict = None,  # ParallelGatedMLP kwargs
         sdpa_fn_decoder: (
             Callable | str
@@ -122,6 +123,7 @@ class PARCOPolicy(nn.Module):
         # self.two_stage_pos_sampling = two_stage_pos_sampling
         self.mask_handled = mask_handled
         self.use_init_logp = use_init_logp
+        self.max_steps = max_steps
 
     def forward(
         self,
@@ -132,10 +134,13 @@ class PARCOPolicy(nn.Module):
         return_actions: bool = True,
         return_sum_log_likelihood: bool = True,
         actions=None,
-        max_steps=1_000_000,
+        max_steps: int = None,
         return_init_embeds: bool = True,
         **decoding_kwargs,
     ) -> dict:
+        if max_steps is None:
+            max_steps = self.max_steps
+
         # Encoder: get encoder output and initial embeddings from initial state
         hidden, init_embeds = self.encoder(td)
 
@@ -163,6 +168,7 @@ class PARCOPolicy(nn.Module):
             use_init_logp=self.use_init_logp,
             mask_handled=self.mask_handled,
             replacement_value_key=self.replacement_value_key,
+            use_pos_token=self.use_pos_token,
             num_samples=num_samples,
             **decoding_kwargs,
         )
@@ -219,6 +225,10 @@ class PARCOPolicy(nn.Module):
             ),
             "halting_ratio": halting_ratio,
         }
+
+        if self.use_pos_token and len(decode_strategy.pos_ratios) > 0:
+            # Fraction of agent-steps spent deliberately idling
+            outdict["pos_ratio"] = torch.stack(decode_strategy.pos_ratios).mean()
 
         if return_actions:
             outdict["actions"] = actions

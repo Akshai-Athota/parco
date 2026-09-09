@@ -48,6 +48,7 @@ class PARCODecodingStrategy(metaclass=abc.ABCMeta):
         top_p: float = 0.0,
         top_k: int = 0,
         tanh_clipping: float = 10.0,
+        use_pos_token: bool = False,  # Explicit wait action, always available
         multistart: bool = False,
         multisample: bool = False,
         num_samples: int = 1,
@@ -81,6 +82,7 @@ class PARCODecodingStrategy(metaclass=abc.ABCMeta):
         self.top_p = top_p
         self.top_k = top_k
         self.tanh_clipping = tanh_clipping
+        self.use_pos_token = use_pos_token
         if multistart:
             raise ValueError("Multistart is not supported for multi-agent decoding")
         self.multistart = multistart
@@ -95,6 +97,7 @@ class PARCODecodingStrategy(metaclass=abc.ABCMeta):
         self.logprobs = []
         self.handling_masks = []
         self.halting_ratios = []
+        self.pos_ratios = []
         self.iter_count = 0
 
     @abc.abstractmethod
@@ -174,11 +177,27 @@ class PARCODecodingStrategy(metaclass=abc.ABCMeta):
         logprobs, actions, td = self._step(logprobs, mask, td, **kwargs)
         actions_init = actions.clone()
 
+        # The decoder appends one always-available column for the wait action, so
+        # the wait sits at the last index of the expanded action space
+        wait_idx = logprobs.size(-1) - 1
+        exclude_values = None
+
+        if self.use_pos_token:
+            actions = self._break_wait_deadlock(actions, logprobs, td, wait_idx)
+            # Waiting agents all carry the same action value, but they are not
+            # competing for a node, so they must not count as conflicting
+            exclude_values = wait_idx
+
         # Solve conflicts via agent handler
         replacement_value = td[self.replacement_value_key]  # replace with previous node
 
         actions, handling_mask, halting_ratio = self.agent_handler(
-            actions, replacement_value, td, probs=logprobs.clone(), **agent_handler_kwargs
+            actions,
+            replacement_value,
+            td,
+            exclude_values=exclude_values,
+            probs=logprobs.clone(),
+            **agent_handler_kwargs,
         )
         if self.store_handling_mask:
             # NOTE
@@ -187,8 +206,20 @@ class PARCODecodingStrategy(metaclass=abc.ABCMeta):
             self.handling_masks.append(handling_mask)
         self.halting_ratios.append(halting_ratio)
 
+        actions_executed = actions
+        if self.use_pos_token:
+            # The environment has no node with the wait index: executing a wait
+            # means the agent stays where it is. Translating here rather than in
+            # the env keeps the reward and the solution checker operating on real
+            # node indices, while the logprobs are still gathered at the wait
+            # index below, i.e. at the action the policy actually chose.
+            is_wait = actions == wait_idx
+            self.pos_ratios.append(is_wait.float().mean())
+            actions_executed = torch.where(is_wait, replacement_value, actions)
+
         # for others
         if not self.store_all_logp:
+            # note: `actions` is pre-translation, so a wait is scored as a wait
             actions_gather = actions_init if self.use_init_logp else actions
             # logprobs: [B, m, N], actions_cur: [B, m]
             # transform logprobs to [B, m]
@@ -199,10 +230,43 @@ class PARCODecodingStrategy(metaclass=abc.ABCMeta):
             if self.mask_handled:
                 logprobs.masked_fill_(handling_mask, 0)
 
+        actions = actions_executed
         td.set("action", actions)
         self.actions.append(actions)
         self.logprobs.append(logprobs)
         return td
+
+    def _break_wait_deadlock(self, actions, logprobs, td, wait_idx):
+        """Guarantee at least one agent acts while the instance is not done.
+
+        The wait action is unmasked by construction, so nothing stops *every*
+        agent from choosing it. That leaves the state untouched, and since the
+        decoder is deterministic in the state, the next step yields identical
+        logits and waits again -- an infinite loop that only ends at max_steps,
+        by which point the accumulated per-step tensors exhaust GPU memory.
+
+        Where an instance would stall, force the single agent with the most to
+        gain from acting (largest gap between its best real action and waiting)
+        to take that real action instead.
+        """
+        is_wait = actions == wait_idx
+        stalled = is_wait.all(dim=-1) & ~td["done"]
+        if not stalled.any():
+            return actions
+
+        real_logprobs = logprobs[..., :wait_idx]  # drop the wait column
+        best_value, best_node = real_logprobs.max(dim=-1)  # [B, m] each
+        # Wait is always feasible, so its logprob is finite and the gap is never
+        # NaN; an agent with no feasible node scores -inf and is never picked
+        gap = best_value - logprobs[..., wait_idx]
+        forced_agent = gap.argmax(dim=-1, keepdim=True)  # [B, 1]
+
+        # Leave alone any instance with no feasible real action at all
+        stalled = stalled & torch.isfinite(best_value).any(dim=-1)
+
+        forced_node = best_node.gather(1, forced_agent)
+        unstalled = actions.scatter(1, forced_agent, forced_node)
+        return torch.where(stalled[:, None], unstalled, actions)
 
     @staticmethod
     def greedy(logprobs, mask=None):

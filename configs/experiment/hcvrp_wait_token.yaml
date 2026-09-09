@@ -1,0 +1,95 @@
+# @package _global_
+
+# HCVRP with an EXPLICIT IDLE ACTION (learnable wait token).
+#
+# Vanilla PARCO gives each agent a softmax over the N nodes only, so an agent can
+# never express the intent to wait -- it idles only involuntarily, when the
+# conflict handler overrules it. Here the action space is expanded to N+1 with a
+# learned key e_wait appended to the node keys, always unmasked, so an agent can
+# proactively stay put instead of proposing a node it should not visit.
+#
+# Everything else matches `experiment=hcvrp` exactly, so this is a clean A/B.
+# Watch `train/pos_ratio` (how often agents choose to idle) alongside
+# `train/halting_ratio` (the conflict rate) -- the idea predicts the second falls
+# as the first becomes usable.
+
+# Override defaults: take configs from relative path
+defaults:
+  - override /model: parco.yaml
+  - override /env: hcvrp.yaml
+  - override /callbacks: default.yaml
+  - override /trainer: default.yaml
+  # - override /logger: null # comment this line to enable logging
+  - override /logger: wandb.yaml
+
+
+# NOTE: other hparams are in the env file
+generator_params:
+  num_loc: 100 # max locs
+  num_agents: 7 # min locs
+
+# Model hyperparameters
+model:
+  policy: # note: all other arguments (e.g. embeddings) are automatically taken from the env
+    # otherwise, you may pass init_embedding / context_embedding (example below)
+    _target_: "parco.models.policy.PARCOPolicy"
+    env_name: "${env.name}"
+    agent_handler: "highprob" # unchanged from the baseline, so only the wait token differs
+    embed_dim: 128
+    # --- explicit idle action ---
+    use_pos_token: true # add the always-available wait action (N -> N+1)
+    trainable_pos_token: true # e_wait is learned, not a fixed vector
+    # Safety bound on the decoding loop. Parallel HCVRP needs ~20-30 steps; even
+    # if every step advanced only one agent it would take ~N + depot returns.
+    # This turns a runaway wait loop into a fast, loud failure instead of an OOM.
+    max_steps: 1000
+    # ----------------------------
+    norm_after: false # true means we use Kool structure, which seems slightly worse
+    normalization: "rms"
+    use_final_norm: true # LLM way
+    parallel_gated_kwargs:
+      mlp_activation: "silu" # use MLP as in LLaMa
+    context_embedding_kwargs:
+      normalization: "rms"
+      norm_after: false # true means we use Kool structure, which seems slightly worse
+      use_final_norm: true # LLM way
+      parallel_gated_kwargs:
+        mlp_activation: "silu"
+  batch_size: 128
+  val_batch_size: ${model.batch_size}
+  test_batch_size: ${model.batch_size}
+  train_data_size: 100_000
+  val_data_size: 10_000
+  test_data_size: 10_000
+  optimizer_kwargs:
+    lr: 1e-4
+    weight_decay: 0.0
+  lr_scheduler:
+    "MultiStepLR"
+  lr_scheduler_kwargs:
+    milestones: [80, 95]
+    gamma: 0.1
+  num_augment: 8
+  train_min_agents: 3
+  train_max_agents: ${env.generator_params.num_agents} # max agents is the number of agents
+  train_min_size: 60
+  train_max_size: ${env.generator_params.num_loc} # max size is the number of locations
+
+# Logging: we use Wandb in this case
+logger:
+  wandb:
+    project: "parco-${env.name}"
+    tags: ["parco", "${env.name}", "communication", "wait_token"]
+    group: "${env.name}_n${env.generator_params.num_loc}_m${env.generator_params.num_agents}"
+    name: "parco_wait_token"
+
+# Trainer: this is a customized version of the PyTorch Lightning trainer.
+trainer:
+  max_epochs: 100
+
+seed: 1234
+
+# Used to save the best model. However, we are not using this in the current setup
+callbacks:
+  model_checkpoint:
+    monitor: "val/reward/n60_m5"

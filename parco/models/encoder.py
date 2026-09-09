@@ -51,7 +51,12 @@ class PARCOEncoder(nn.Module):
         )
 
         if use_pos_token and trainable_pos_token:
-            self.pos_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
+            # Random (not zero) init: this token is the learned key e_wait that
+            # represents the idle option, and it needs an identity of its own
+            # from the start rather than a vector that normalisation maps to 0
+            self.pos_token = nn.Parameter(
+                torch.randn(1, 1, embed_dim) * embed_dim**-0.5
+            )
         elif use_pos_token:
             self.pos_token = torch.zeros(1, 1, embed_dim)
         else:
