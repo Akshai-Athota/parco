@@ -1,0 +1,1005 @@
+[[36m2026-09-11 01:33:52,013[0m][[34mrl4co.utils.utils[0m][[32mINFO[0m] - Enforcing tags! <cfg.extras.enforce_tags=True>[0m
+[[36m2026-09-11 01:33:52,018[0m][[34mrl4co.utils.utils[0m][[32mINFO[0m] - Printing config tree with Rich! <cfg.extras.print_config=True>[0m
+CONFIG
+├── model
+│   └── _target_: parco.models.rl.PARCORLModule                                 
+│       metrics:                                                                
+│         train:                                                                
+│         - loss                                                                
+│         - reward                                                              
+│         - halting_ratio                                                       
+│         - pos_ratio                                                           
+│         val:                                                                  
+│         - reward                                                              
+│         - halting_ratio                                                       
+│         - pos_ratio                                                           
+│         test:                                                                 
+│         - reward                                                              
+│         - halting_ratio                                                       
+│         - pos_ratio                                                           
+│         log_on_step: true                                                     
+│       policy:                                                                 
+│         _target_: parco.models.policy.PARCOPolicy                             
+│         env_name: hcvrp                                                       
+│         agent_handler: highprob                                               
+│         embed_dim: 128                                                        
+│         use_pos_token: true                                                   
+│         trainable_pos_token: true                                             
+│         max_steps: 1000                                                       
+│         norm_after: false                                                     
+│         normalization: rms                                                    
+│         use_final_norm: true                                                  
+│         parallel_gated_kwargs:                                                
+│           mlp_activation: silu                                                
+│         context_embedding_kwargs:                                             
+│           normalization: rms                                                  
+│           norm_after: false                                                   
+│           use_final_norm: true                                                
+│           parallel_gated_kwargs:                                              
+│             mlp_activation: silu                                              
+│       batch_size: 8                                                           
+│       val_batch_size: 8                                                       
+│       test_batch_size: 8                                                      
+│       train_data_size: 100000                                                 
+│       val_data_size: 10000                                                    
+│       test_data_size: 10000                                                   
+│       optimizer_kwargs:                                                       
+│         lr: 0.0001                                                            
+│         weight_decay: 0.0                                                     
+│       lr_scheduler: MultiStepLR                                               
+│       lr_scheduler_kwargs:                                                    
+│         milestones:                                                           
+│         - 80                                                                  
+│         - 95                                                                  
+│         gamma: 0.1                                                            
+│       num_augment: 4                                                          
+│       train_min_agents: 3                                                     
+│       train_max_agents: 7                                                     
+│       train_min_size: 60                                                      
+│       train_max_size: 100                                                     
+│       dataloader_num_workers: 5                                               
+│                                                                               
+├── callbacks
+│   └── model_checkpoint:                                                       
+│         _target_: lightning.pytorch.callbacks.ModelCheckpoint                 
+│         dirpath: /home/athota/parco/logs/train/runs/hcvrp_n100_m7/parco_wait_t
+│         filename: epoch_{epoch:03d}                                           
+│         monitor: val/reward/n60_m5                                            
+│         verbose: false                                                        
+│         save_last: true                                                       
+│         save_top_k: 1                                                         
+│         mode: max                                                             
+│         auto_insert_metric_name: false                                        
+│         save_weights_only: false                                              
+│         every_n_train_steps: null                                             
+│         train_time_interval: null                                             
+│         every_n_epochs: null                                                  
+│         save_on_train_epoch_end: null                                         
+│       model_summary:                                                          
+│         _target_: lightning.pytorch.callbacks.RichModelSummary                
+│         max_depth: 5                                                          
+│       rich_progress_bar:                                                      
+│         _target_: lightning.pytorch.callbacks.RichProgressBar                 
+│       speed_monitor:                                                          
+│         _target_: rl4co.utils.callbacks.speed_monitor.SpeedMonitor            
+│         intra_step_time: true                                                 
+│         inter_step_time: true                                                 
+│         epoch_time: true                                                      
+│       learning_rate_monitor:                                                  
+│         _target_: lightning.pytorch.callbacks.LearningRateMonitor             
+│         logging_interval: epoch                                               
+│                                                                               
+├── logger
+│   └── wandb:                                                                  
+│         _target_: lightning.pytorch.loggers.wandb.WandbLogger                 
+│         save_dir: /home/athota/parco/logs/train/runs/hcvrp_n100_m7/parco_wait_
+│         offline: true                                                         
+│         id: null                                                              
+│         anonymous: null                                                       
+│         project: parco-hcvrp                                                  
+│         log_model: false                                                      
+│         prefix: ''                                                            
+│         group: hcvrp_n100_m7                                                  
+│         tags:                                                                 
+│         - parco                                                               
+│         - hcvrp                                                               
+│         - communication                                                       
+│         - wait_token                                                          
+│         job_type: ''                                                          
+│         name: parco_wait_token                                                
+│                                                                               
+├── trainer
+│   └── _target_: rl4co.utils.trainer.RL4COTrainer                              
+│       default_root_dir: /home/athota/parco/logs/train/runs/hcvrp_n100_m7/parco
+│       gradient_clip_val: 1.0                                                  
+│       accelerator: gpu                                                        
+│       precision: 16-mixed                                                     
+│       strategy:                                                               
+│         _target_: lightning.pytorch.strategies.DDPStrategy                    
+│         find_unused_parameters: true                                          
+│         gradient_as_bucket_view: true                                         
+│       check_val_every_n_epoch: 1                                              
+│       deterministic: false                                                    
+│       max_epochs: 100                                                         
+│       accumulate_grad_batches: 16                                             
+│                                                                               
+├── paths
+│   └── root_dir: /home/athota/parco                                            
+│       data_dir: /home/athota/parco/data/                                      
+│       log_dir: /home/athota/parco/logs/                                       
+│       output_dir: /home/athota/parco/logs/train/runs/hcvrp_n100_m7/parco_wait_
+│       work_dir: /home/athota/parco                                            
+│                                                                               
+├── extras
+│   └── ignore_warnings: false                                                  
+│       enforce_tags: true                                                      
+│       print_config: true                                                      
+│                                                                               
+├── mode
+│   └── train                                                                   
+├── tags
+│   └── ['dev']                                                                 
+├── train
+│   └── True                                                                    
+├── test
+│   └── True                                                                    
+├── compile
+│   └── False                                                                   
+├── ckpt_path
+│   └── None                                                                    
+├── seed
+│   └── 1234                                                                    
+├── matmul_precision
+│   └── medium                                                                  
+├── metrics
+│   └── train:                                                                  
+│       - loss                                                                  
+│       - reward                                                                
+│       val:                                                                    
+│       - reward                                                                
+│       test:                                                                   
+│       - reward                                                                
+│       log_on_step: true                                                       
+│                                                                               
+├── env
+│   └── _target_: parco.envs.hcvrp.HCVRPEnv                                     
+│       name: hcvrp                                                             
+│       generator_params:                                                       
+│         num_loc: 100                                                          
+│         num_agents: 7                                                         
+│       data_dir: /home/athota/parco/data/hcvrp                                 
+│       val_file:                                                               
+│       - n60_m3_seed24610.npz                                                  
+│       - n60_m5_seed24610.npz                                                  
+│       - n60_m7_seed24610.npz                                                  
+│       - n80_m3_seed24610.npz                                                  
+│       - n80_m5_seed24610.npz                                                  
+│       - n80_m7_seed24610.npz                                                  
+│       - n100_m3_seed24610.npz                                                 
+│       - n100_m5_seed24610.npz                                                 
+│       - n100_m7_seed24610.npz                                                 
+│       val_dataloader_names:                                                   
+│       - n60_m3                                                                
+│       - n60_m5                                                                
+│       - n60_m7                                                                
+│       - n80_m3                                                                
+│       - n80_m5                                                                
+│       - n80_m7                                                                
+│       - n100_m3                                                               
+│       - n100_m5                                                               
+│       - n100_m7                                                               
+│       test_file:                                                              
+│       - n60_m3_seed24610.npz                                                  
+│       - n60_m5_seed24610.npz                                                  
+│       - n60_m7_seed24610.npz                                                  
+│       - n80_m3_seed24610.npz                                                  
+│       - n80_m5_seed24610.npz                                                  
+│       - n80_m7_seed24610.npz                                                  
+│       - n100_m3_seed24610.npz                                                 
+│       - n100_m5_seed24610.npz                                                 
+│       - n100_m7_seed24610.npz                                                 
+│       test_dataloader_names:                                                  
+│       - n60_m3                                                                
+│       - n60_m5                                                                
+│       - n60_m7                                                                
+│       - n80_m3                                                                
+│       - n80_m5                                                                
+│       - n80_m7                                                                
+│       - n100_m3                                                               
+│       - n100_m5                                                               
+│       - n100_m7                                                               
+│                                                                               
+└── generator_params
+    └── num_loc: 100                                                            
+        num_agents: 7                                                           
+                                                                                
+[[36m2026-09-11 01:33:52,077[0m][[34m__main__[0m][[32mINFO[0m] - Instantiating environment <parco.envs.hcvrp.HCVRPEnv>[0m
+[[36m2026-09-11 01:33:52,973[0m][[34m__main__[0m][[32mINFO[0m] - Instantiating model <parco.models.rl.PARCORLModule>[0m
+[[36m2026-09-11 01:33:53,265[0m][[34mparco.models.policy[0m][[32mINFO[0m] - Initializing default PARCOEncoder[0m
+[[36m2026-09-11 01:33:53,339[0m][[34mparco.models.policy[0m][[32mINFO[0m] - Initializing default PARCODecoder[0m
+[[36m2026-09-11 01:33:53,671[0m][[34mrl4co.data.transforms[0m][[32mINFO[0m] - Features not passed, defaulting to 'locs'[0m
+[[36m2026-09-11 01:33:53,671[0m][[34mrl4co.data.transforms[0m][[32mINFO[0m] - Features not passed, defaulting to 'locs'[0m
+[[36m2026-09-11 01:33:53,673[0m][[34m__main__[0m][[32mINFO[0m] - Instantiating callbacks...[0m
+[[36m2026-09-11 01:33:53,673[0m][[34mrl4co.utils.instantiators[0m][[32mINFO[0m] - Instantiating callback <lightning.pytorch.callbacks.ModelCheckpoint>[0m
+[[36m2026-09-11 01:33:53,681[0m][[34mrl4co.utils.instantiators[0m][[32mINFO[0m] - Instantiating callback <lightning.pytorch.callbacks.RichModelSummary>[0m
+[[36m2026-09-11 01:33:53,681[0m][[34mrl4co.utils.instantiators[0m][[32mINFO[0m] - Instantiating callback <lightning.pytorch.callbacks.RichProgressBar>[0m
+[[36m2026-09-11 01:33:53,682[0m][[34mrl4co.utils.instantiators[0m][[32mINFO[0m] - Instantiating callback <rl4co.utils.callbacks.speed_monitor.SpeedMonitor>[0m
+[[36m2026-09-11 01:33:53,683[0m][[34mrl4co.utils.instantiators[0m][[32mINFO[0m] - Instantiating callback <lightning.pytorch.callbacks.LearningRateMonitor>[0m
+[[36m2026-09-11 01:33:53,684[0m][[34m__main__[0m][[32mINFO[0m] - Instantiating loggers...[0m
+[[36m2026-09-11 01:33:53,684[0m][[34mrl4co.utils.instantiators[0m][[32mINFO[0m] - Instantiating logger <lightning.pytorch.loggers.wandb.WandbLogger>[0m
+[[36m2026-09-11 01:33:53,690[0m][[34m__main__[0m][[32mINFO[0m] - Instantiating trainer...[0m
+[[36m2026-09-11 01:33:53,709[0m][[34m__main__[0m][[32mINFO[0m] - Logging hyperparameters![0m
+[[36m2026-09-11 01:33:56,200[0m][[34m__main__[0m][[32mINFO[0m] - Starting training![0m
+[[36m2026-09-11 01:33:57,429[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Setting up batch sizes for train/val/test[0m
+[[36m2026-09-11 01:33:57,430[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Setting up datasets[0m
+[[36m2026-09-11 01:34:00,020[0m][[34mrl4co.envs.common.base[0m][[32mINFO[0m] - Loading val dataset from ['/home/athota/parco/data/hcvrp/n60_m3_seed24610.npz', '/home/athota/parco/data/hcvrp/n60_m5_seed24610.npz', '/home/athota/parco/data/hcvrp/n60_m7_seed24610.npz', '/home/athota/parco/data/hcvrp/n80_m3_seed24610.npz', '/home/athota/parco/data/hcvrp/n80_m5_seed24610.npz', '/home/athota/parco/data/hcvrp/n80_m7_seed24610.npz', '/home/athota/parco/data/hcvrp/n100_m3_seed24610.npz', '/home/athota/parco/data/hcvrp/n100_m5_seed24610.npz', '/home/athota/parco/data/hcvrp/n100_m7_seed24610.npz'][0m
+[[36m2026-09-11 01:34:00,546[0m][[34mrl4co.envs.common.base[0m][[32mINFO[0m] - Loading test dataset from ['/home/athota/parco/data/hcvrp/n60_m3_seed24610.npz', '/home/athota/parco/data/hcvrp/n60_m5_seed24610.npz', '/home/athota/parco/data/hcvrp/n60_m7_seed24610.npz', '/home/athota/parco/data/hcvrp/n80_m3_seed24610.npz', '/home/athota/parco/data/hcvrp/n80_m5_seed24610.npz', '/home/athota/parco/data/hcvrp/n80_m7_seed24610.npz', '/home/athota/parco/data/hcvrp/n100_m3_seed24610.npz', '/home/athota/parco/data/hcvrp/n100_m5_seed24610.npz', '/home/athota/parco/data/hcvrp/n100_m7_seed24610.npz'][0m
+[[36m2026-09-11 01:34:00,772[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Instantiating optimizer <Adam>[0m
+[[36m2026-09-11 01:34:00,772[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Instantiating LR scheduler <MultiStepLR>[0m
+┏━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━┳━━━━━┳━━━━┓
+┃    ┃ Name                                                    ┃ T… ┃ Pa… ┃ M… ┃
+┡━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━╇━━━━━╇━━━━┩
+│ 0  │ env                                                     │ H… │   0 │ t… │
+│ 1  │ policy                                                  │ P… │ 1.3 │ t… │
+│    │                                                         │    │   M │    │
+│ 2  │ policy.encoder                                          │ P… │ 839 │ t… │
+│    │                                                         │    │   K │    │
+│ 3  │ policy.encoder.init_embedding                           │ H… │ 50… │ t… │
+│    │                                                         │    │   K │    │
+│ 4  │ policy.encoder.init_embedding.init_embed_depot          │ L… │ 256 │ t… │
+│ 5  │ policy.encoder.init_embedding.pos_encoder               │ P… │   0 │ t… │
+│ 6  │ policy.encoder.init_embedding.pos_embedding_proj        │ L… │ 16… │ t… │
+│    │                                                         │    │   K │    │
+│ 7  │ policy.encoder.init_embedding.init_embed_agents         │ L… │ 512 │ t… │
+│ 8  │ policy.encoder.init_embedding.init_embed_depot_agents   │ L… │ 32… │ t… │
+│    │                                                         │    │   K │    │
+│ 9  │ policy.encoder.init_embedding.init_embed_clients        │ L… │ 640 │ t… │
+│ 10 │ policy.encoder.layers                                   │ S… │ 788 │ t… │
+│    │                                                         │    │   K │    │
+│ 11 │ policy.encoder.layers.0                                 │ T… │ 262 │ t… │
+│    │                                                         │    │   K │    │
+│ 12 │ policy.encoder.layers.0.norm_attn                       │ N… │ 128 │ t… │
+│ 13 │ policy.encoder.layers.0.attention                       │ M… │ 66… │ t… │
+│    │                                                         │    │   K │    │
+│ 14 │ policy.encoder.layers.0.norm_ffn                        │ N… │ 128 │ t… │
+│ 15 │ policy.encoder.layers.0.ffn                             │ P… │ 196 │ t… │
+│    │                                                         │    │   K │    │
+│ 16 │ policy.encoder.layers.1                                 │ T… │ 262 │ t… │
+│    │                                                         │    │   K │    │
+│ 17 │ policy.encoder.layers.1.norm_attn                       │ N… │ 128 │ t… │
+│ 18 │ policy.encoder.layers.1.attention                       │ M… │ 66… │ t… │
+│    │                                                         │    │   K │    │
+│ 19 │ policy.encoder.layers.1.norm_ffn                        │ N… │ 128 │ t… │
+│ 20 │ policy.encoder.layers.1.ffn                             │ P… │ 196 │ t… │
+│    │                                                         │    │   K │    │
+│ 21 │ policy.encoder.layers.2                                 │ T… │ 262 │ t… │
+│    │                                                         │    │   K │    │
+│ 22 │ policy.encoder.layers.2.norm_attn                       │ N… │ 128 │ t… │
+│ 23 │ policy.encoder.layers.2.attention                       │ M… │ 66… │ t… │
+│    │                                                         │    │   K │    │
+│ 24 │ policy.encoder.layers.2.norm_ffn                        │ N… │ 128 │ t… │
+│ 25 │ policy.encoder.layers.2.ffn                             │ P… │ 196 │ t… │
+│    │                                                         │    │   K │    │
+│ 26 │ policy.encoder.norm                                     │ N… │ 128 │ t… │
+│ 27 │ policy.encoder.norm.normalizer                          │ R… │ 128 │ t… │
+│ 28 │ policy.decoder                                          │ P… │ 411 │ t… │
+│    │                                                         │    │   K │    │
+│ 29 │ policy.decoder.context_embedding                        │ H… │ 329 │ t… │
+│    │                                                         │    │   K │    │
+│ 30 │ policy.decoder.context_embedding.proj_agent_feats       │ L… │ 384 │ t… │
+│ 31 │ policy.decoder.context_embedding.proj_global_feats      │ L… │ 128 │ t… │
+│ 32 │ policy.decoder.context_embedding.project_context        │ L… │ 65… │ t… │
+│    │                                                         │    │   K │    │
+│ 33 │ policy.decoder.context_embedding.communication_layers   │ S… │ 262 │ t… │
+│    │                                                         │    │   K │    │
+│ 34 │ policy.decoder.context_embedding.communication_layers.0 │ T… │ 262 │ t… │
+│    │                                                         │    │   K │    │
+│ 35 │ policy.decoder.context_embedding.norm                   │ N… │ 128 │ t… │
+│ 36 │ policy.decoder.context_embedding.norm.normalizer        │ R… │ 128 │ t… │
+│ 37 │ policy.decoder.dynamic_embedding                        │ S… │   0 │ t… │
+│ 38 │ policy.decoder.pointer                                  │ P… │ 16… │ t… │
+│    │                                                         │    │   K │    │
+│ 39 │ policy.decoder.pointer.project_out                      │ L… │ 16… │ t… │
+│    │                                                         │    │   K │    │
+│ 40 │ policy.decoder.project_node_embeddings                  │ L… │ 49… │ t… │
+│    │                                                         │    │   K │    │
+│ 41 │ policy.decoder.project_fixed_context                    │ L… │ 16… │ t… │
+│    │                                                         │    │   K │    │
+│ 42 │ baseline                                                │ N… │   0 │ t… │
+│ 43 │ projection_head                                         │ M… │ 33… │ t… │
+│    │                                                         │    │   K │    │
+│ 44 │ projection_head.0                                       │ L… │ 16… │ t… │
+│    │                                                         │    │   K │    │
+│ 45 │ projection_head.1                                       │ R… │   0 │ t… │
+│ 46 │ projection_head.2                                       │ L… │ 16… │ t… │
+│    │                                                         │    │   K │    │
+└────┴─────────────────────────────────────────────────────────┴────┴─────┴────┘
+Trainable params: 1.3 M                                                         
+Non-trainable params: 0                                                         
+Total params: 1.3 M                                                             
+Total estimated model params size (MB): 5                                       
+Modules in train mode: 79                                                       
+Modules in eval mode: 0                                                         
+[[36m2026-09-11 01:34:22,858[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:34:27,143[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:34:49,012[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:34:52,400[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:35:15,001[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:35:18,417[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:35:41,415[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:35:44,824[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:36:17,204[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:36:20,619[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:36:44,618[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:36:48,000[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:37:19,598[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:37:23,012[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:37:44,852[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:37:48,241[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:38:09,995[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:38:13,418[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:50:03,318[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:50:06,736[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:50:11,106[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:50:15,015[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:50:18,426[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:50:22,083[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:50:25,737[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:50:29,870[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:50:33,998[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:50:56,428[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:51:00,736[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:51:04,603[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:51:08,026[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:51:11,675[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:51:14,936[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:51:18,359[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:51:22,440[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:51:46,241[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:51:50,404[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:51:53,785[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:51:57,576[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:52:00,958[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:52:04,339[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:52:07,906[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:52:11,291[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:52:15,640[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:52:19,221[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:52:48,729[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:52:53,071[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:52:57,394[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:53:01,091[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:53:04,467[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:53:07,846[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:53:11,550[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:53:15,251[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:53:19,603[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:53:23,298[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:53:26,514[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:53:50,368[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:53:53,757[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:53:57,440[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:54:00,831[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:54:04,208[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:54:08,174[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:54:12,451[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:54:15,830[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:54:19,208[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:54:22,900[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:54:26,278[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:54:29,661[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:54:33,338[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:54:37,295[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:54:59,990[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:55:03,370[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:55:07,573[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:55:10,949[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:55:14,598[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:55:18,250[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:55:21,894[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:55:25,543[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:55:29,759[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:55:33,129[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:55:37,051[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:55:40,419[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:55:44,066[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:56:07,132[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:56:10,944[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:56:14,316[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:56:17,687[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:56:21,478[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:56:25,267[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:56:28,672[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:56:32,841[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:56:36,216[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:56:39,592[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:56:43,000[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:56:47,615[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:57:13,167[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:57:16,947[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:57:20,331[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:57:23,720[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:57:27,493[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:57:31,228[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:57:36,514[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:57:41,796[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:57:45,185[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:57:49,349[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:58:28,492[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:58:32,236[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:58:36,692[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:58:40,779[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:58:44,161[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:58:48,263[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:58:51,647[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:58:55,032[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:58:58,786[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:59:02,522[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:59:05,903[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:59:10,372[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:59:13,758[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 01:59:14,137[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-09-11 02:16:31,486[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:16:36,608[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:17:58,023[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:19:25,820[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-09-11 02:39:31,912[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:39:45,955[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:40:08,379[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:40:27,886[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:42:22,368[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:42:49,466[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:42:55,988[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:42:59,665[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:44:16,632[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:44:50,895[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:45:27,190[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-09-11 02:55:30,891[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:55:41,618[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:55:53,299[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:56:01,505[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:56:08,737[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:56:16,494[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:56:37,852[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:56:44,403[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:56:50,967[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:56:57,579[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:57:04,174[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:57:10,760[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:57:17,793[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:57:27,259[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:57:33,808[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:57:42,684[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:57:53,109[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:57:59,692[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:58:06,254[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:58:12,800[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:58:19,380[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:58:25,973[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:58:32,565[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:58:39,160[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:58:45,725[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:58:52,310[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:58:58,882[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:59:05,442[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:59:12,023[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:59:18,606[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:59:28,105[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:59:34,740[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:59:41,319[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:59:47,875[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 02:59:54,402[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:00:00,923[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:00:07,468[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:00:14,029[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:00:20,963[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:00:27,555[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:00:40,167[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:00:46,765[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:00:53,352[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:00:59,942[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:01:06,507[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:01:13,094[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:01:19,726[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:01:26,283[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:01:32,851[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:01:39,433[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:01:46,016[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:01:52,588[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:01:59,165[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:02:05,738[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:02:12,335[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:02:22,188[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:02:28,772[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:02:35,686[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:02:42,254[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:02:48,853[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:02:55,438[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:03:02,065[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:03:08,642[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:03:15,242[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:03:21,810[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:03:28,399[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:03:34,995[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:03:41,580[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:03:48,157[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:03:54,757[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:04:01,371[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:04:07,976[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:04:14,560[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:04:21,145[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:04:27,748[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:04:34,347[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:04:40,915[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:04:47,550[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:04:54,148[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:05:00,745[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:05:07,308[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:05:14,348[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:05:20,996[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:05:27,607[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:05:34,197[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:05:40,770[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:05:47,361[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:05:53,960[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:06:00,558[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:06:07,140[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:06:13,704[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:06:20,291[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:06:26,839[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:06:33,449[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:06:40,032[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:06:46,608[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:06:53,188[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:06:59,765[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:07:06,339[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:07:12,947[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:07:19,549[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:07:26,127[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:07:32,718[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:07:39,309[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:07:45,931[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:07:52,533[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:07:59,557[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:08:06,136[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:08:12,730[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:08:19,385[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:08:25,991[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:08:32,528[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:08:39,055[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:08:45,569[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:08:52,063[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:08:58,594[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:09:05,121[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:09:11,633[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:09:18,153[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:09:24,675[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:09:31,192[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:09:37,673[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:09:44,176[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:09:50,659[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:09:57,225[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:10:03,855[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:10:10,438[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:10:17,474[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:10:24,058[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:10:30,650[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:10:37,223[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:10:43,818[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:10:50,398[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:10:56,961[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:11:03,542[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:11:10,118[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:11:16,688[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:11:23,258[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:11:29,833[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:11:36,411[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:11:43,001[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:11:49,589[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:11:56,131[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:12:02,698[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:12:09,294[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:12:15,871[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:12:22,432[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:12:29,018[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:12:35,599[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:12:42,160[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:12:49,092[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:12:55,686[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:13:02,273[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:13:08,860[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:13:15,435[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:13:22,001[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:13:28,571[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:13:35,190[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:13:41,756[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:13:48,352[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:13:54,925[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:14:01,484[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:14:08,013[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:14:14,568[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:14:21,138[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:14:27,713[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:14:34,296[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:14:40,886[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:14:47,458[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:14:54,037[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:15:00,604[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:15:07,174[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:15:13,734[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:15:20,689[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:15:27,265[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:15:33,844[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:15:40,408[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:15:46,991[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:15:53,580[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:16:00,155[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:16:06,723[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:16:13,308[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:16:19,874[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:16:26,454[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:16:33,037[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:16:39,604[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:16:46,181[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:16:52,717[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:16:59,260[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:17:05,868[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:17:12,428[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:17:19,026[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:17:25,579[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:17:32,160[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:17:38,757[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:17:45,345[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:17:51,876[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:17:58,764[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:18:05,347[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:18:11,944[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:18:18,540[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:18:25,126[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:18:31,707[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:18:38,287[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:18:44,875[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:18:51,492[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:18:58,058[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:19:04,645[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:19:11,223[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:19:17,813[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:19:24,393[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:19:30,957[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:19:37,516[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:19:44,103[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:19:50,660[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:19:57,242[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:20:03,821[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:20:10,390[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:20:16,960[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:20:23,532[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:20:30,102[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:20:37,065[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:20:43,632[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:20:50,200[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:20:56,777[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:21:03,339[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:21:09,913[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:21:16,506[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:21:23,084[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:21:29,672[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:21:36,207[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:21:42,736[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:21:49,323[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:21:55,905[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:22:02,495[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:22:09,023[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:22:15,548[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:22:22,111[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:22:28,626[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:22:35,130[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:22:41,638[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:22:48,143[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:22:54,654[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:23:01,169[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:23:07,668[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:23:14,528[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:23:21,023[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:23:27,515[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:23:34,010[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:23:40,532[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:23:47,090[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:23:53,611[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:24:00,109[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:24:06,648[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:24:13,150[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:24:19,659[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:24:26,180[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:24:32,704[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:24:39,199[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:24:45,716[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:24:52,237[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:24:58,757[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:25:05,264[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:25:11,765[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:25:18,273[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:25:24,779[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:25:31,245[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:25:37,721[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:25:44,245[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:25:51,236[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:25:57,717[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:26:04,217[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:26:10,701[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:26:17,198[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:26:23,711[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:26:30,220[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:26:36,707[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:26:43,214[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:26:49,712[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:26:56,212[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:27:02,681[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:27:09,187[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:27:15,694[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:27:22,179[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:27:28,697[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:27:35,242[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:27:41,753[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:27:48,245[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:27:54,741[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:28:01,229[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:28:07,726[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:28:14,220[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:28:20,720[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:28:27,219[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:28:34,063[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:28:40,576[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:28:47,072[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:28:53,568[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:29:00,078[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:29:06,546[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:29:13,023[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:29:19,577[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:29:26,061[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:29:32,535[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:29:39,038[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:29:45,556[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:29:52,069[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:29:58,578[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:30:05,073[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:30:11,582[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:30:18,051[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:30:24,544[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:30:31,071[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:30:37,593[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:30:44,086[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:30:50,944[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:30:57,467[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:31:04,002[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:31:10,511[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:31:17,038[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:31:23,536[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:31:30,047[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:31:36,546[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:31:43,024[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:31:49,534[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:31:56,035[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:32:02,526[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:32:09,029[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:32:15,537[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:32:22,040[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:32:28,512[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:32:35,007[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:32:41,527[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:32:48,095[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:32:54,617[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:33:01,141[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:33:07,639[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:33:14,145[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:33:21,041[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:33:27,553[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:33:34,071[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:33:40,594[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:33:47,169[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:33:53,681[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:34:00,192[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:34:06,707[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:34:13,233[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+[[36m2026-09-11 03:34:19,719[0m][[34mparco.models.policy[0m][[31mERROR[0m] - Exceeded maximum number of steps (1000) during decoding[0m
+Epoch 3/99 ━━━━━━━━━        1215/2084 0:47:27 •       0.15it/s v_num: ifof      
+                                      1:34:10                  train/reward:    
+                                                               -16.492          
+                                                               train/halting_ra…
+                                                               0.002            
+                                                               train/pos_ratio: 
+                                                               0.719 train/loss:
+                                                               -26.119          
+                                                               val/reward/n60_m…
+                                                               -10.584          
+                                                               val/halting_rati…
+                                                               0.056            
+                                                               val/pos_ratio/n6…
+                                                               0.600            
+                                                               val/reward/n60_m…
+                                                               -6.977           
+                                                               val/halting_rati…
+                                                               0.118            
+                                                               val/pos_ratio/n6…
+                                                               0.647            
+                                                               val/reward/n60_m…
+                                                               -5.619           
+                                                               val/halting_rati…
+                                                               0.186            
+                                                               val/pos_ratio/n6…
+                                                               0.626            
+                                                               val/reward/n80_m…
+                                                               -14.201          
+                                                               val/halting_rati…
+                                                               0.036            
+                                                               val/pos_ratio/n8…
+                                                               0.660            
+                                                               val/reward/n80_m…
+                                                               -8.793           
+                                                               val/halting_rati…
+                                                               0.081            
+                                                               val/pos_ratio/n8…
+                                                               0.696            
+                                                               val/reward/n80_m…
+                                                               -6.874           
+                                                               val/halting_rati…
+                                                               0.128            
+                                                               val/pos_ratio/n8…
+                                                               0.695            
+                                                               val/reward/n100_…
+                                                               -18.375          
+                                                               val/halting_rati…
+                                                               0.030            
+                                                               val/pos_ratio/n1…
+                                                               0.644            
+                                                               val/reward/n100_…
+                                                               -10.499          
+                                                               val/halting_rati…
+                                                               0.061            
+                                                               val/pos_ratio/n1…
+                                                               0.729            
+                                                               val/reward/n100_…
+                                                               -7.893           
+                                                               val/halting_rati…
+                                                               0.092            
+                                                               val/pos_ratio/n1…
+                                                               0.740            
+[[36m2026-09-11 03:34:26,009[0m][[34mrl4co.utils.utils[0m][[31mERROR[0m] - [0m
+Traceback (most recent call last):
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/rl4co/utils/utils.py", line 41, in wrap
+    metric_dict, object_dict = task_func(cfg=cfg)
+                               ~~~~~~~~~^^^^^^^^^
+  File "/home/athota/parco/train.py", line 76, in run
+    trainer.fit(model=model, ckpt_path=cfg.get("ckpt_path"))
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/rl4co/utils/trainer.py", line 146, in fit
+    super().fit(
+    ~~~~~~~~~~~^
+        model=model,
+        ^^^^^^^^^^^^
+    ...<3 lines>...
+        ckpt_path=ckpt_path,
+        ^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/lightning/pytorch/trainer/trainer.py", line 561, in fit
+    call._call_and_handle_interrupt(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self, self._fit_impl, model, train_dataloaders, val_dataloaders, datamodule, ckpt_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/lightning/pytorch/trainer/call.py", line 47, in _call_and_handle_interrupt
+    return trainer.strategy.launcher.launch(trainer_fn, *args, trainer=trainer, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/lightning/pytorch/strategies/launchers/subprocess_script.py", line 105, in launch
+    return function(*args, **kwargs)
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/lightning/pytorch/trainer/trainer.py", line 599, in _fit_impl
+    self._run(model, ckpt_path=ckpt_path)
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/lightning/pytorch/trainer/trainer.py", line 1012, in _run
+    results = self._run_stage()
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/lightning/pytorch/trainer/trainer.py", line 1056, in _run_stage
+    self.fit_loop.run()
+    ~~~~~~~~~~~~~~~~~^^
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/lightning/pytorch/loops/fit_loop.py", line 216, in run
+    self.advance()
+    ~~~~~~~~~~~~^^
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/lightning/pytorch/loops/fit_loop.py", line 455, in advance
+    self.epoch_loop.run(self._data_fetcher)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/lightning/pytorch/loops/training_epoch_loop.py", line 150, in run
+    self.advance(data_fetcher)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/lightning/pytorch/loops/training_epoch_loop.py", line 320, in advance
+    batch_output = self.automatic_optimization.run(trainer.optimizers[0], batch_idx, kwargs)
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/lightning/pytorch/loops/optimization/automatic.py", line 192, in run
+    self._optimizer_step(batch_idx, closure)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/lightning/pytorch/loops/optimization/automatic.py", line 270, in _optimizer_step
+    call._call_lightning_module_hook(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        trainer,
+        ^^^^^^^^
+    ...<4 lines>...
+        train_step_and_backward_closure,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/lightning/pytorch/trainer/call.py", line 176, in _call_lightning_module_hook
+    output = fn(*args, **kwargs)
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/lightning/pytorch/core/module.py", line 1302, in optimizer_step
+    optimizer.step(closure=optimizer_closure)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/lightning/pytorch/core/optimizer.py", line 154, in step
+    step_output = self._strategy.optimizer_step(self._optimizer, closure, **kwargs)
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/lightning/pytorch/strategies/ddp.py", line 270, in optimizer_step
+    optimizer_output = super().optimizer_step(optimizer, closure, model, **kwargs)
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/lightning/pytorch/strategies/strategy.py", line 239, in optimizer_step
+    return self.precision_plugin.optimizer_step(optimizer, model=model, closure=closure, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/lightning/pytorch/plugins/precision/amp.py", line 79, in optimizer_step
+    closure_result = closure()
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/lightning/pytorch/loops/optimization/automatic.py", line 146, in __call__
+    self._result = self.closure(*args, **kwargs)
+                   ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/torch/utils/_contextlib.py", line 116, in decorate_context
+    return func(*args, **kwargs)
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/lightning/pytorch/loops/optimization/automatic.py", line 131, in closure
+    step_output = self._step_fn()
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/lightning/pytorch/loops/optimization/automatic.py", line 319, in _training_step
+    training_step_output = call._call_strategy_hook(trainer, "training_step", *kwargs.values())
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/lightning/pytorch/trainer/call.py", line 328, in _call_strategy_hook
+    output = fn(*args, **kwargs)
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/lightning/pytorch/strategies/strategy.py", line 390, in training_step
+    return self._forward_redirection(self.model, self.lightning_module, "training_step", *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/lightning/pytorch/strategies/strategy.py", line 641, in __call__
+    wrapper_output = wrapper_module(*args, **kwargs)
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/torch/nn/parallel/distributed.py", line 1637, in forward
+    else self._run_ddp_forward(*inputs, **kwargs)
+         ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/torch/nn/parallel/distributed.py", line 1464, in _run_ddp_forward
+    return self.module(*inputs, **kwargs)  # type: ignore[index]
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/lightning/pytorch/strategies/strategy.py", line 634, in wrapped_forward
+    out = method(*_args, **_kwargs)
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/rl4co/models/rl/common/base.py", line 258, in training_step
+    return self.shared_step(batch, batch_idx, phase="train")
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/athota/parco/parco/models/rl.py", line 115, in shared_step
+    out = self.policy(
+        td,
+    ...<2 lines>...
+        return_init_embeds=True,
+    )
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/athota/parco/parco/models/policy.py", line 194, in forward
+    td = decode_strategy.step(
+        logits,
+    ...<2 lines>...
+        action=actions[..., step] if actions is not None else None,
+    )
+  File "/home/athota/parco/parco/models/decoding_strategies.py", line 186, in step
+    actions = self._break_wait_deadlock(actions, logprobs, td, wait_idx)
+  File "/home/athota/parco/parco/models/decoding_strategies.py", line 269, in _break_wait_deadlock
+    return torch.where(stalled[:, None], unstalled, actions)
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: The size of tensor a (32) must match the size of tensor b (3) at non-singleton dimension 2
+[[36m2026-09-11 03:34:26,123[0m][[34mrl4co.utils.utils[0m][[32mINFO[0m] - Output dir: /home/athota/parco/logs/train/runs/hcvrp_n100_m7/parco_wait_token/2026-09-11_01-33-51[0m
+[[36m2026-09-11 03:34:26,124[0m][[34mrl4co.utils.utils[0m][[32mINFO[0m] - Closing loggers...[0m
+[[36m2026-09-11 03:34:26,124[0m][[34mrl4co.utils.utils[0m][[32mINFO[0m] - Closing wandb![0m
