@@ -1,0 +1,98 @@
+# @package _global_
+
+# HCVRP with MASKED JOINT decoding (option 1b).
+#
+# Parallel PARCO samples the M agents independently and repairs collisions after
+# the fact, so the action the policy scored is not the action the env executed.
+# Here the M x N logits are computed once per environment step and the agents are
+# assigned one at a time from the flattened joint distribution, masking each
+# chosen node as we go. All M agents still act in the same step, so an episode is
+# the same length as parallel PARCO -- but no two agents can take the same node,
+# so proposals and executions coincide and no conflict handler runs.
+#
+# Reference points for the ablation:
+#   experiment=hcvrp             -> parallel, conflicts repaired  (baseline)
+#   experiment=hcvrp_sequential  -> one agent per env step        (quality bound)
+#   experiment=hcvrp_joint       -> this: collision-free at parallel cost
+#
+# halting_ratio logs as exactly 0 here; that is the check that it really is
+# collision-free.
+
+# Override defaults: take configs from relative path
+defaults:
+  - override /model: parco.yaml
+  - override /env: hcvrp.yaml
+  - override /callbacks: default.yaml
+  - override /trainer: default.yaml
+  # - override /logger: null # comment this line to enable logging
+  - override /logger: wandb.yaml
+
+
+# NOTE: other hparams are in the env file
+generator_params:
+  num_loc: 100 # max locs
+  num_agents: 7 # min locs
+
+# Model hyperparameters
+model:
+  policy: # note: all other arguments (e.g. embeddings) are automatically taken from the env
+    # otherwise, you may pass init_embedding / context_embedding (example below)
+    _target_: "parco.models.policy.PARCOPolicy"
+    env_name: "${env.name}"
+    agent_handler: "highprob" # unused: collisions cannot occur under joint decoding
+    embed_dim: 128
+    # --- masked joint decoding ---
+    train_decode_type: "joint_sampling"
+    val_decode_type: "joint_greedy"
+    test_decode_type: "joint_greedy"
+    max_steps: 1000 # episodes are parallel-length; fail fast instead of OOM-ing
+    # -----------------------------
+    norm_after: false # true means we use Kool structure, which seems slightly worse
+    normalization: "rms"
+    use_final_norm: true # LLM way
+    parallel_gated_kwargs:
+      mlp_activation: "silu" # use MLP as in LLaMa
+    context_embedding_kwargs:
+      normalization: "rms"
+      norm_after: false # true means we use Kool structure, which seems slightly worse
+      use_final_norm: true # LLM way
+      parallel_gated_kwargs:
+        mlp_activation: "silu"
+  batch_size: 128
+  val_batch_size: ${model.batch_size}
+  test_batch_size: ${model.batch_size}
+  train_data_size: 100_000
+  val_data_size: 10_000
+  test_data_size: 10_000
+  optimizer_kwargs:
+    lr: 1e-4
+    weight_decay: 0.0
+  lr_scheduler:
+    "MultiStepLR"
+  lr_scheduler_kwargs:
+    milestones: [80, 95]
+    gamma: 0.1
+  num_augment: 8
+  train_min_agents: 3
+  train_max_agents: ${env.generator_params.num_agents} # max agents is the number of agents
+  train_min_size: 60
+  train_max_size: ${env.generator_params.num_loc} # max size is the number of locations
+
+# Logging: we use Wandb in this case
+logger:
+  wandb:
+    project: "parco-${env.name}"
+    tags: ["parco", "${env.name}", "communication", "joint_decode"]
+    group: "${env.name}_n${env.generator_params.num_loc}_m${env.generator_params.num_agents}"
+    name: "parco_joint"
+
+# Trainer: this is a customized version of the PyTorch Lightning trainer.
+trainer:
+  max_epochs: 100
+
+seed: 1234
+
+# Used to save the best model. However, we are not using this in the current setup
+callbacks:
+  model_checkpoint:
+    monitor: "val/reward/n60_m5"

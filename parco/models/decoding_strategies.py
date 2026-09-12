@@ -20,6 +20,8 @@ def parco_get_decoding_strategy(decoding_strategy, **config):
         "greedy": Greedy,
         "sampling": Sampling,
         "evaluate": Evaluate,
+        "joint_greedy": JointGreedy,
+        "joint_sampling": JointSampling,
     }
 
     if "multistart" in decoding_strategy:
@@ -280,6 +282,125 @@ class Evaluate(PARCODecodingStrategy):
         """The action is provided externally, so we just return the action"""
         selected = action
         return logprobs, selected, td
+
+
+class MaskedJointDecodingStrategy(PARCODecodingStrategy):
+    """Collision-free joint decoding from a single decoder pass.
+
+    Parallel PARCO samples the M agents independently and repairs the collisions
+    afterwards, so the action the policy scored (the proposal) is not the action
+    the environment executed. Sequential decoding removes that gap but pays for
+    it with one decoder pass per agent assignment.
+
+    This is the middle ground. The [B, M, A] logits are computed ONCE per
+    environment step, then agents are assigned one at a time from the flattened
+    joint distribution: after each pick, that agent's row and that node's column
+    are masked out, so no two agents can be handed the same node. All M agents
+    still act in the same environment step, so an episode has the same number of
+    steps as parallel PARCO -- the inner loop is just masking and argmax over a
+    matrix that already exists.
+
+    Two consequences:
+
+    - the sampled joint action IS the executed one, so the proposal and executed
+      distributions coincide and no conflict handler is needed;
+    - the joint logprob is the sum of the M sequential conditionals, which is a
+      proper distribution over collision-free assignments.
+
+    The cost relative to sequential decoding is staleness: the second and later
+    agents choose from logits computed before the earlier assignments existed.
+    That gap is exactly what the ablation against `sequential_greedy` measures.
+    """
+
+    def _select_flat(self, flat_logprobs: torch.Tensor) -> torch.Tensor:
+        """Pick one flattened (agent, node) index per instance. Returns [B]."""
+        raise NotImplementedError("Must be implemented by subclass")
+
+    def step(
+        self,
+        logits: torch.Tensor,
+        mask: torch.Tensor,
+        td: TensorDict = None,
+        agent_handler_kwargs: dict = {},
+        **kwargs,
+    ) -> TensorDict:
+        self.iter_count += 1
+        batch_size, num_agents, num_actions = logits.shape
+
+        if self.tanh_clipping > 0:
+            logits = self.tanh_clipping * torch.tanh(logits)
+
+        work_mask = mask.clone()
+        # Agents not reached by the loop keep their current node, which the env
+        # treats as a no-op through its stay_flag
+        actions = td["current_node"].clone()
+        logprobs = torch.zeros(
+            (batch_size, num_agents), dtype=torch.float32, device=logits.device
+        )
+
+        for _ in range(num_agents):
+            masked_logits = logits.masked_fill(~work_mask, -torch.inf)
+            flat = masked_logits.reshape(batch_size, -1)
+
+            # Instances with no assignable (agent, node) pair left: the neutral
+            # row keeps log_softmax finite and the result is discarded below
+            exhausted = ~torch.isfinite(flat).any(dim=-1)
+            flat = torch.where(exhausted[:, None], torch.zeros_like(flat), flat)
+
+            flat_logprobs = F.log_softmax(flat / self.temperature, dim=-1)
+            flat_action = self._select_flat(flat_logprobs)  # [B]
+            selected_logprob = flat_logprobs.gather(1, flat_action[:, None]).squeeze(1)
+
+            agent_idx = torch.div(flat_action, num_actions, rounding_mode="floor")
+            node_idx = flat_action % num_actions
+            live = (~exhausted)[:, None]
+
+            actions = torch.where(
+                live,
+                actions.scatter(1, agent_idx[:, None], node_idx[:, None]),
+                actions,
+            )
+            step_logprob = torch.zeros_like(logprobs).scatter(
+                1, agent_idx[:, None], selected_logprob[:, None].float()
+            )
+            logprobs = logprobs + torch.where(
+                live, step_logprob, torch.zeros_like(step_logprob)
+            )
+
+            # That agent is now assigned, and that node is taken. Depot indices
+            # are per-agent (the env masks them with an identity matrix), so
+            # clearing a depot column never blocks another agent's own depot.
+            work_mask = work_mask.scatter(
+                1, agent_idx[:, None, None].expand(-1, 1, num_actions), False
+            )
+            work_mask = work_mask.scatter(
+                2, node_idx[:, None, None].expand(-1, num_agents, 1), False
+            )
+
+        # Collisions are impossible by construction, so no conflict is handled
+        self.halting_ratios.append(torch.zeros((), device=logits.device))
+
+        td.set("action", actions)
+        self.actions.append(actions)
+        self.logprobs.append(logprobs)
+        return td
+
+    def _step(self, logprobs, mask, td, action=None, **kwargs):
+        """Unused: ``step`` is overridden wholesale."""
+
+
+class JointGreedy(MaskedJointDecodingStrategy):
+    name = "joint_greedy"
+
+    def _select_flat(self, flat_logprobs: torch.Tensor) -> torch.Tensor:
+        return flat_logprobs.argmax(dim=-1)
+
+
+class JointSampling(MaskedJointDecodingStrategy):
+    name = "joint_sampling"
+
+    def _select_flat(self, flat_logprobs: torch.Tensor) -> torch.Tensor:
+        return torch.distributions.Categorical(logits=flat_logprobs).sample()
 
 
 class PARCO4FFSPDecoding(PARCODecodingStrategy):
