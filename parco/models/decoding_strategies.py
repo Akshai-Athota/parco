@@ -250,7 +250,11 @@ class PARCODecodingStrategy(metaclass=abc.ABCMeta):
         to take that real action instead.
         """
         is_wait = actions == wait_idx
-        stalled = is_wait.all(dim=-1) & ~td["done"]
+        # The env builds `done` as [B], but torchrl conforms it to done_spec
+        # (shape (1,)) on env.step, so from the second step on it arrives as
+        # [B, 1]. Flatten it: `&` with the [B] tensor would broadcast to [B, B].
+        done = td["done"].reshape(actions.size(0), -1).all(dim=-1)
+        stalled = is_wait.all(dim=-1) & ~done
         if not stalled.any():
             return actions
 
