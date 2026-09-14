@@ -28,15 +28,5 @@ srun python test.py \
   --decode_type joint_greedy \
   --batch_size 128
 
-# Zero-shot cell: does collision-free decoding help a model trained the normal
-# way? Separates "joint decoding helps" from "training jointly helps".
-# Point PAR_CKPT at the checkpoint behind your reproduced baseline numbers.
-PAR_CKPT=$(ls -td logs/train/runs/${RUN_GROUP}/parco/*/checkpoints/last.ckpt | head -n 1)
-echo "=========================================================="
-echo "[B] parallel-trained model, joint decoding (zero-shot)"
-echo "=========================================================="
-srun python test.py \
-  --problem hcvrp \
-  --checkpoint "${PAR_CKPT}" \
-  --decode_type joint_greedy \
-  --batch_size 128
+
+

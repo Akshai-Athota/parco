@@ -1,0 +1,66 @@
+Using checkpoint: logs/train/runs/hcvrp_n100_m7/parco_joint/2026-09-12_09-09-10/checkpoints/last.ckpt
+==========================================================
+[A] joint-trained model, joint decoding
+==========================================================
+Loading checkpoint from  logs/train/runs/hcvrp_n100_m7/parco_joint/2026-09-12_09-09-10/checkpoints/last.ckpt
+Loading checkpoint from  logs/train/runs/hcvrp_n100_m7/parco_joint/2026-09-12_09-09-10/checkpoints/last.ckpt
+Loading ./data/hcvrp/n100_m3_seed24610.npz
+Average cost: 11.7166
+Per step inference time: 0.2692s
+Total inference time: 2.6916s
+Average eval steps: 68.50
+Loading ./data/hcvrp/n100_m5_seed24610.npz
+Average cost: 7.1404
+Per step inference time: 0.2423s
+Total inference time: 2.4232s
+Average eval steps: 61.60
+Loading ./data/hcvrp/n100_m7_seed24610.npz
+Average cost: 5.3262
+Per step inference time: 0.2606s
+Total inference time: 2.6065s
+Average eval steps: 55.50
+Loading ./data/hcvrp/n40_m3_seed24610.npz
+Average cost: 5.8288
+Per step inference time: 0.1110s
+Total inference time: 1.1097s
+Average eval steps: 34.20
+Loading ./data/hcvrp/n40_m5_seed24610.npz
+Average cost: 3.9368
+Per step inference time: 0.1094s
+Total inference time: 1.0937s
+Average eval steps: 27.90
+Loading ./data/hcvrp/n40_m7_seed24610.npz
+Average cost: 3.3819
+Per step inference time: 0.1099s
+Total inference time: 1.0991s
+Average eval steps: 23.60
+Loading ./data/hcvrp/n60_m3_seed24610.npz
+Average cost: 7.6605
+Per step inference time: 0.1554s
+Total inference time: 1.5536s
+Average eval steps: 48.20
+Loading ./data/hcvrp/n60_m5_seed24610.npz
+Average cost: 4.9143
+Per step inference time: 0.1612s
+Total inference time: 1.6116s
+Average eval steps: 40.90
+Loading ./data/hcvrp/n60_m7_seed24610.npz
+Average cost: 3.8595
+Per step inference time: 0.1583s
+Total inference time: 1.5829s
+Average eval steps: 34.00
+Loading ./data/hcvrp/n80_m3_seed24610.npz
+Average cost: 9.7360
+Per step inference time: 0.1905s
+Total inference time: 1.9054s
+Average eval steps: 58.90
+Loading ./data/hcvrp/n80_m5_seed24610.npz
+Average cost: 6.0402
+Per step inference time: 0.2082s
+Total inference time: 2.0819s
+Average eval steps: 52.80
+Loading ./data/hcvrp/n80_m7_seed24610.npz
+Average cost: 4.5604
+Per step inference time: 0.2090s
+Total inference time: 2.0901s
+Average eval steps: 45.00
