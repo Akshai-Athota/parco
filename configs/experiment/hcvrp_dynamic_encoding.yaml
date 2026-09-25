@@ -1,0 +1,105 @@
+# @package _global_
+
+# HCVRP with DYNAMIC RE-ENCODING + full sequential decoding.
+#
+# This is the loop as specified by the supervisor:
+#
+#     encoder -> decoder -> pick the highest-probability (vehicle, node) pair
+#             -> that vehicle moves -> START AGAIN FROM THE ENCODER
+#
+# The stock encoder reads only static features (coordinates, demands, total
+# capacity, speed), so re-running it would return the identical tensor. This
+# experiment therefore also swaps in HCVRPDynamicInitEmbedding, which embeds
+# agents at their CURRENT position with their REMAINING capacity and elapsed
+# time, and marks customers that have already been served. Only then does
+# re-encoding change anything.
+#
+# Compare against experiment=hcvrp_sequential, which is the same decoding scheme
+# with the encoder run once per instance.
+#
+# COST: the encoder (3 transformer layers over M+N tokens) now runs on every one
+# of the ~N decoding steps, instead of once. Expect training to be several times
+# slower than the sequential run (which already took ~29 h), and far more
+# activation memory. Hence the small per-step batch in the job script, and the
+# reencode_every knob below if it has to be cheapened.
+
+# Override defaults: take configs from relative path
+defaults:
+  - override /model: parco.yaml
+  - override /env: hcvrp.yaml
+  - override /callbacks: default.yaml
+  - override /trainer: default.yaml
+  # - override /logger: null # comment this line to enable logging
+  - override /logger: wandb.yaml
+
+
+# NOTE: other hparams are in the env file
+generator_params:
+  num_loc: 100 # max locs
+  num_agents: 7 # min locs
+
+# Model hyperparameters
+model:
+  policy: # note: all other arguments (e.g. embeddings) are automatically taken from the env
+    # otherwise, you may pass init_embedding / context_embedding (example below)
+    _target_: "parco.models.policy.PARCOPolicy"
+    env_name: "${env.name}"
+    agent_handler: "highprob" # unused under sequential decoding: no conflicts arise
+    embed_dim: 128
+    # --- dynamic re-encoding + sequential decoding ---
+    dynamic_encoding: true # re-run the encoder on the current state
+    reencode_every: 1 # 1 = every decoding step, as specified; raise it to cut cost
+    train_decode_type: "sequential_sampling"
+    val_decode_type: "sequential_greedy"
+    test_decode_type: "sequential_greedy"
+    max_steps: 1000 # fail fast instead of running away
+    # -------------------------------------------------
+    norm_after: false # true means we use Kool structure, which seems slightly worse
+    normalization: "rms"
+    use_final_norm: true # LLM way
+    parallel_gated_kwargs:
+      mlp_activation: "silu" # use MLP as in LLaMa
+    context_embedding_kwargs:
+      normalization: "rms"
+      norm_after: false # true means we use Kool structure, which seems slightly worse
+      use_final_norm: true # LLM way
+      parallel_gated_kwargs:
+        mlp_activation: "silu"
+  batch_size: 128
+  val_batch_size: ${model.batch_size}
+  test_batch_size: ${model.batch_size}
+  train_data_size: 100_000
+  val_data_size: 10_000
+  test_data_size: 10_000
+  optimizer_kwargs:
+    lr: 1e-4
+    weight_decay: 0.0
+  lr_scheduler:
+    "MultiStepLR"
+  lr_scheduler_kwargs:
+    milestones: [80, 95]
+    gamma: 0.1
+  num_augment: 8
+  train_min_agents: 3
+  train_max_agents: ${env.generator_params.num_agents} # max agents is the number of agents
+  train_min_size: 60
+  train_max_size: ${env.generator_params.num_loc} # max size is the number of locations
+
+# Logging: we use Wandb in this case
+logger:
+  wandb:
+    project: "parco-${env.name}"
+    tags: ["parco", "${env.name}", "communication", "dynamic_encoding"]
+    group: "${env.name}_n${env.generator_params.num_loc}_m${env.generator_params.num_agents}"
+    name: "parco_dynamic_encoding"
+
+# Trainer: this is a customized version of the PyTorch Lightning trainer.
+trainer:
+  max_epochs: 100
+
+seed: 1234
+
+# Used to save the best model. However, we are not using this in the current setup
+callbacks:
+  model_checkpoint:
+    monitor: "val/reward/n60_m5"

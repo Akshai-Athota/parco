@@ -15,6 +15,7 @@ from .decoding_strategies import (
     parco_get_decoding_strategy,
 )
 from .encoder import MatNetEncoder, PARCOEncoder
+from .env_embeddings import env_init_embedding
 from .utils import get_log_likelihood
 
 log = get_pylogger(__name__)
@@ -57,6 +58,9 @@ class PARCOPolicy(nn.Module):
         replacement_value_key: str = "current_node",  # When stopping arises (conflict or POS token), replace the value of this key
         use_pos_token: bool = False,  # Add a POS (pause-of-sequence) action
         trainable_pos_token: bool = True,  # If true, then the pos token is trainable
+        dynamic_encoding: bool = False,  # Re-run the encoder on the current state
+        reencode_every: int = 1,  # Re-encode every k decoding steps (1 = every step)
+        max_steps: int = 1_000_000,  # Safety bound on the decoding loop
         # two_stage_pos_sampling: bool = True,  # new, faster
         parallel_gated_kwargs: dict = None,  # ParallelGatedMLP kwargs
         sdpa_fn_decoder: (
@@ -76,6 +80,20 @@ class PARCOPolicy(nn.Module):
         }
 
         self.env_name = env_name
+        self.dynamic_encoding = dynamic_encoding
+        self.reencode_every = max(1, int(reencode_every))
+        self.max_steps = max_steps
+
+        if dynamic_encoding and init_embedding is None:
+            # The stock init embedding reads only static features, so re-running
+            # the encoder on it would return the identical tensor. Swap in the
+            # variant that encodes the current positions, remaining capacities
+            # and visited customers, which is what makes re-encoding meaningful.
+            init_embedding_kwargs = {**init_embedding_kwargs, "embed_dim": embed_dim}
+            init_embedding = env_init_embedding(
+                f"{env_name}_dynamic", init_embedding_kwargs
+            )
+            log.info(f"Dynamic encoding: using {type(init_embedding).__name__}")
 
         # Encoder and decoder
         if encoder is None:
@@ -132,10 +150,13 @@ class PARCOPolicy(nn.Module):
         return_actions: bool = True,
         return_sum_log_likelihood: bool = True,
         actions=None,
-        max_steps=1_000_000,
+        max_steps: int = None,
         return_init_embeds: bool = True,
         **decoding_kwargs,
     ) -> dict:
+        if max_steps is None:
+            max_steps = self.max_steps
+
         # Encoder: get encoder output and initial embeddings from initial state
         hidden, init_embeds = self.encoder(td)
 
@@ -170,21 +191,32 @@ class PARCOPolicy(nn.Module):
         # Pre-decoding hook: used for the initial step(s) of the decoding strategy
         td, env, num_samples = decode_strategy.pre_decoder_hook(td, env)
 
-        # Additionally call a decoder hook if needed before main decoding
-        td, env, hidden = self.decoder.pre_decoder_hook(td, env, hidden, num_samples)
-        # We use unbatchify if num_samples > 1
-        if num_samples > 1:
-            do_unbatchify = True
-        else:
+        if self.dynamic_encoding:
+            # The cache is rebuilt from a fresh encoder pass inside the loop. Keys
+            # cannot be shared across samples any more (each sample has its own
+            # state), so the expanded batch is decoded as a plain batch.
             do_unbatchify = False
+            decoder_num_starts = 1
+        else:
+            # Additionally call a decoder hook if needed before main decoding
+            td, env, hidden = self.decoder.pre_decoder_hook(td, env, hidden, num_samples)
+            # We use unbatchify if num_samples > 1
+            do_unbatchify = num_samples > 1
+            decoder_num_starts = num_samples
         # Main decoding: loop until all sequences are done
+        cached = hidden
         step = 0
         while not td["done"].all():
             # We only need to proceed once when decoder forwarding.
             if step > 1:
                 do_unbatchify = False
 
-            logits, mask = self.decoder(td, hidden, num_samples, do_unbatchify)
+            if self.dynamic_encoding and step % self.reencode_every == 0:
+                # Re-encode the problem as it now stands, then rebuild the cache
+                hidden, _ = self.encoder(td)
+                cached = self.decoder._precompute_cache(hidden)
+
+            logits, mask = self.decoder(td, cached, decoder_num_starts, do_unbatchify)
             td = decode_strategy.step(
                 logits,
                 mask,

@@ -146,3 +146,112 @@ class HCVRPContextEmbedding(BaseMultiAgentContextEmbedding):
             dim=-1,
         )
         return self.proj_global_feats(global_feats)[..., None, :].repeat(1, num_agents, 1)
+
+
+class HCVRPDynamicInitEmbedding(nn.Module):
+    """Init embedding that encodes the CURRENT state instead of the raw instance.
+
+    The stock :class:`HCVRPInitEmbedding` reads only static inputs -- coordinates,
+    demands, total capacity, speed -- so re-running the encoder during decoding
+    would return the very same tensor. All state-dependence normally enters
+    through the decoder's context embedding.
+
+    This variant makes re-encoding meaningful by feeding the encoder what has
+    happened so far, so that with ``dynamic_encoding=True`` every decoding step
+    re-embeds the problem as it now stands:
+
+    - agents are embedded at their CURRENT position (not the depot), with their
+      REMAINING capacity (not the total), the time they have already spent, and a
+      flag for sitting at the depot;
+    - customers carry a visited flag, so served nodes are marked in the
+      embedding rather than only in the action mask.
+
+    The depot embedding and the polar customer features are unchanged.
+    """
+
+    def __init__(
+        self,
+        embed_dim: int = 128,
+        linear_bias: bool = False,
+        demand_scaler: float = 40.0,
+        speed_scaler: float = 1.0,
+        use_polar_feats: bool = True,
+    ):
+        super(HCVRPDynamicInitEmbedding, self).__init__()
+        # depot feats: [x0, y0]
+        self.init_embed_depot = nn.Linear(2, embed_dim, linear_bias)
+        self.pos_encoder = PositionalEncoder(embed_dim)
+        self.pos_embedding_proj = nn.Linear(embed_dim, embed_dim, linear_bias)
+        self.alpha = nn.Parameter(torch.Tensor([1]))
+        # agent feats: [x, y, remaining capacity, speed, elapsed time, at depot]
+        self.init_embed_agents = nn.Linear(6, embed_dim, linear_bias)
+        # combine depot and agent embeddings
+        self.init_embed_depot_agents = nn.Linear(2 * embed_dim, embed_dim, linear_bias)
+        # client feats: [x, y, demand, visited]
+        client_feats_dim = 6 if use_polar_feats else 4
+        self.init_embed_clients = nn.Linear(client_feats_dim, embed_dim, linear_bias)
+
+        self.demand_scaler = demand_scaler
+        self.speed_scaler = speed_scaler
+        self.use_polar_feats = use_polar_feats
+
+    def forward(self, td):
+        num_agents = td["action_mask"].shape[-2]  # [B, m, m+N]
+        depot_locs = td["locs"][..., :num_agents, :]
+        clients_locs = td["locs"][..., num_agents:, :]
+
+        # Depots embedding with positional encoding (static, as in the stock version)
+        depots_embedding = self.init_embed_depot(depot_locs)
+        pos_embedding = self.pos_encoder(depots_embedding, add=False)
+        pos_embedding = self.alpha * self.pos_embedding_proj(pos_embedding)
+        depot_embedding = depots_embedding + pos_embedding
+
+        # Agents embedded where they actually are, with what they have left
+        agents_locs = gather_by_index(td["locs"], td["current_node"])  # [B, m, 2]
+        remaining_capacity = td["agents_capacity"] - td["used_capacity"]
+        elapsed_time = td["current_length"] / td["agents_speed"]
+        at_depot = (td["current_node"] < num_agents).to(td["locs"].dtype)
+        agents_feats = torch.cat(
+            [
+                agents_locs,
+                remaining_capacity[..., None] / self.demand_scaler,
+                td["agents_speed"][..., None] / self.speed_scaler,
+                elapsed_time[..., None],
+                at_depot[..., None],
+            ],
+            dim=-1,
+        )
+        agents_embedding = self.init_embed_agents(agents_feats)
+
+        # Combine depot and agents embeddings
+        depot_agents_feats = torch.cat([depot_embedding, agents_embedding], dim=-1)
+        depot_agents_embedding = self.init_embed_depot_agents(depot_agents_feats)
+
+        # Clients embedding, now carrying whether they have already been served
+        demands = td["demand"][..., 0, num_agents:]  # [B, N]
+        visited = td["visited"][..., num_agents:].to(td["locs"].dtype)  # [B, N]
+        clients_feats = torch.cat(
+            [
+                clients_locs,
+                demands[..., None] / self.demand_scaler,
+                visited[..., None],
+            ],
+            dim=-1,
+        )
+
+        if self.use_polar_feats:
+            depot = depot_locs[..., 0:1, :]
+            client_locs_centered = clients_locs - depot
+            dist_to_depot = torch.norm(client_locs_centered, p=2, dim=-1, keepdim=True)
+            angle_to_depot = torch.atan2(
+                client_locs_centered[..., 1:], client_locs_centered[..., :1]
+            )
+            clients_feats = torch.cat(
+                [clients_feats, dist_to_depot, angle_to_depot], dim=-1
+            )
+
+        clients_embedding = self.init_embed_clients(clients_feats)
+
+        return torch.cat(
+            [depot_agents_embedding, clients_embedding], -2
+        )  # [B, m+N, hdim]

@@ -2,7 +2,11 @@ import torch.nn as nn
 
 from rl4co.models.nn.env_embeddings.dynamic import StaticEmbedding
 
-from .hcvrp import HCVRPContextEmbedding, HCVRPInitEmbedding
+from .hcvrp import (
+    HCVRPContextEmbedding,
+    HCVRPDynamicInitEmbedding,
+    HCVRPInitEmbedding,
+)
 from .omdcpdp import OMDCPDPContextEmbedding, OMDCPDPInitEmbedding
 from .ffsp import FFSPInitEmbeddings, FFSPDynamicEmbedding, FFSPContextEmbedding
 
@@ -28,6 +32,7 @@ def env_init_embedding(env_name: str, config: dict, registry: dict = None) -> nn
     emb_registry = {
         "omdcpdp": OMDCPDPInitEmbedding,
         "hcvrp": HCVRPInitEmbedding,
+        "hcvrp_dynamic": HCVRPDynamicInitEmbedding,
         "ffsp": FFSPInitEmbeddings,
     }
     return env_embedding_register(env_name, config, emb_registry, registry)
