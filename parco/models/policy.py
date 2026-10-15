@@ -58,6 +58,8 @@ class PARCOPolicy(nn.Module):
         use_pos_token: bool = False,  # Add a POS (pause-of-sequence) action
         trainable_pos_token: bool = True,  # If true, then the pos token is trainable
         # two_stage_pos_sampling: bool = True,  # new, faster
+        decode_k: int = 1,  # (agent, node) pairs committed per decoder pass
+        max_steps: int = 1_000_000,  # Safety bound on the decoding loop
         parallel_gated_kwargs: dict = None,  # ParallelGatedMLP kwargs
         sdpa_fn_decoder: (
             Callable | str
@@ -122,6 +124,8 @@ class PARCOPolicy(nn.Module):
         # self.two_stage_pos_sampling = two_stage_pos_sampling
         self.mask_handled = mask_handled
         self.use_init_logp = use_init_logp
+        self.decode_k = decode_k
+        self.max_steps = max_steps
 
     def forward(
         self,
@@ -132,10 +136,13 @@ class PARCOPolicy(nn.Module):
         return_actions: bool = True,
         return_sum_log_likelihood: bool = True,
         actions=None,
-        max_steps=1_000_000,
+        max_steps: int = None,
         return_init_embeds: bool = True,
         **decoding_kwargs,
     ) -> dict:
+        if max_steps is None:
+            max_steps = self.max_steps
+
         # Encoder: get encoder output and initial embeddings from initial state
         hidden, init_embeds = self.encoder(td)
 
@@ -156,6 +163,9 @@ class PARCOPolicy(nn.Module):
 
         # Setup decoding strategy
         # we pop arguments that are not part of the decoding strategy
+        if "kparallel" in decode_type:
+            # an explicit decode_k kwarg (e.g. from test.py) wins over the config
+            decoding_kwargs.setdefault("decode_k", self.decode_k)
         decode_strategy: PARCODecodingStrategy = parco_get_decoding_strategy(
             decode_type,
             num_agents=num_agents,

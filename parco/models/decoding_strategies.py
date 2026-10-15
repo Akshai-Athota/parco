@@ -20,6 +20,8 @@ def parco_get_decoding_strategy(decoding_strategy, **config):
         "greedy": Greedy,
         "sampling": Sampling,
         "evaluate": Evaluate,
+        "kparallel_greedy": KParallelGreedy,
+        "kparallel_sampling": KParallelSampling,
     }
 
     if "multistart" in decoding_strategy:
@@ -280,6 +282,130 @@ class Evaluate(PARCODecodingStrategy):
         """The action is provided externally, so we just return the action"""
         selected = action
         return logprobs, selected, td
+
+
+class KParallelDecodingStrategy(PARCODecodingStrategy):
+    """Commit ``k`` (agent, node) pairs per decoder pass.
+
+    This is one knob spanning the two extremes we studied separately:
+
+    - ``k = 1``  : full sequential decoding. One pair is committed, the
+      environment steps, and the decoder re-runs, so every decision is
+      conditioned on all previous ones. Maximum quality, ``sum_m T_m`` steps.
+    - ``k = M``  : masked joint decoding. All agents are assigned from a single
+      decoder pass, so agents 2..M choose from logits that predate the earlier
+      picks. Same episode length as parallel PARCO, maximum speed.
+    - ``1 < k < M``: the interpolation, and the points of the Pareto front.
+
+    Within one pass the picks are made from a single joint log-softmax over the
+    flattened ``M x A`` logits; after each pick that agent's row and that node's
+    column are masked, so no two agents can be given the same node. Agents not
+    picked in a pass repeat their current node, which the environment treats as
+    a no-op. Conflicts are impossible for any k, so no conflict handler runs and
+    the halting ratio is 0 by construction.
+
+    An agent may not re-select the node it is standing on: that pick would not
+    advance the state, the decoder would return identical logits, and for k < M
+    the loop could never terminate. An agent left with no legal move simply
+    stays.
+    """
+
+    def __init__(self, *args, decode_k: int = 1, forbid_self_loop: bool = True, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.decode_k = max(1, int(decode_k))
+        self.forbid_self_loop = forbid_self_loop
+
+    def _select_flat(self, flat_logprobs: torch.Tensor) -> torch.Tensor:
+        """Pick one flattened (agent, node) index per instance. Returns [B]."""
+        raise NotImplementedError("Must be implemented by subclass")
+
+    def step(
+        self,
+        logits: torch.Tensor,
+        mask: torch.Tensor,
+        td: TensorDict = None,
+        agent_handler_kwargs: dict = {},
+        **kwargs,
+    ) -> TensorDict:
+        self.iter_count += 1
+        batch_size, num_agents, num_actions = logits.shape
+        current_node = td["current_node"]
+
+        if self.tanh_clipping > 0:
+            logits = self.tanh_clipping * torch.tanh(logits)
+
+        work_mask = mask.clone()
+        if self.forbid_self_loop:
+            work_mask.scatter_(-1, current_node[..., None], False)
+
+        # agents not reached in this pass keep their current node (a no-op)
+        actions = current_node.clone()
+        logprobs = torch.zeros(
+            (batch_size, num_agents), dtype=torch.float32, device=logits.device
+        )
+
+        for _ in range(min(self.decode_k, num_agents)):
+            masked_logits = logits.masked_fill(~work_mask, -torch.inf)
+            flat = masked_logits.reshape(batch_size, -1)
+
+            # instance with nothing assignable left: neutral row keeps
+            # log_softmax finite, and the result is discarded below
+            exhausted = ~torch.isfinite(flat).any(dim=-1)
+            flat = torch.where(exhausted[:, None], torch.zeros_like(flat), flat)
+
+            flat_logprobs = F.log_softmax(flat / self.temperature, dim=-1)
+            flat_action = self._select_flat(flat_logprobs)
+            selected_logprob = flat_logprobs.gather(1, flat_action[:, None]).squeeze(1)
+
+            agent_idx = torch.div(flat_action, num_actions, rounding_mode="floor")
+            node_idx = flat_action % num_actions
+            live = (~exhausted)[:, None]
+
+            actions = torch.where(
+                live,
+                actions.scatter(1, agent_idx[:, None], node_idx[:, None]),
+                actions,
+            )
+            step_logprob = torch.zeros_like(logprobs).scatter(
+                1, agent_idx[:, None], selected_logprob[:, None].float()
+            )
+            logprobs = logprobs + torch.where(
+                live, step_logprob, torch.zeros_like(step_logprob)
+            )
+
+            # that agent has decided, and that node is taken. Depot columns are
+            # per-agent in the env, so clearing one never blocks another agent.
+            work_mask = work_mask.scatter(
+                1, agent_idx[:, None, None].expand(-1, 1, num_actions), False
+            )
+            work_mask = work_mask.scatter(
+                2, node_idx[:, None, None].expand(-1, num_agents, 1), False
+            )
+
+        # collisions are impossible for any k, so nothing is ever handled
+        self.halting_ratios.append(torch.zeros((), device=logits.device))
+
+        td.set("action", actions)
+        self.actions.append(actions)
+        self.logprobs.append(logprobs)
+        return td
+
+    def _step(self, logprobs, mask, td, action=None, **kwargs):
+        """Unused: ``step`` is overridden wholesale."""
+
+
+class KParallelGreedy(KParallelDecodingStrategy):
+    name = "kparallel_greedy"
+
+    def _select_flat(self, flat_logprobs: torch.Tensor) -> torch.Tensor:
+        return flat_logprobs.argmax(dim=-1)
+
+
+class KParallelSampling(KParallelDecodingStrategy):
+    name = "kparallel_sampling"
+
+    def _select_flat(self, flat_logprobs: torch.Tensor) -> torch.Tensor:
+        return torch.distributions.Categorical(logits=flat_logprobs).sample()
 
 
 class PARCO4FFSPDecoding(PARCODecodingStrategy):

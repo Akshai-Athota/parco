@@ -30,13 +30,20 @@ if __name__ == "__main__":
         "--decode_type",
         type=str,
         default="greedy",
-        help="Decoding type. Available: greedy, sampling",
+        help="Decoding type. Available: greedy, sampling, kparallel_greedy, kparallel_sampling",
     )
     parser.add_argument(
         "--sample_size",
         type=int,
         default=None,
         help="Number of samples to use for sampling decoding",
+    )
+    parser.add_argument(
+        "--decode_k",
+        type=int,
+        default=None,
+        help="Pairs committed per decoder pass for kparallel_* decoding. "
+        "1 = full sequential, M = masked joint, in between = the Pareto front.",
     )
     parser.add_argument("--batch_size", type=int, default=1)
     parser.add_argument("--checkpoint", type=str, default=None)
@@ -64,7 +71,7 @@ if __name__ == "__main__":
             problem is not None
         ), "Problem must be specified if checkpoint is not provided"
         checkpoint_path = f"./checkpoints/{problem}/parco.ckpt"
-    if decode_type == "greedy":
+    if "greedy" in decode_type:
         assert (
             sample_size == 1 or sample_size is None
         ), "Greedy decoding only uses 1 sample"
@@ -83,7 +90,7 @@ if __name__ == "__main__":
         data_paths = [f"./data/{problem}/{f}" for f in os.listdir(f"./data/{problem}")]
     else:
         data_paths = [opts.datasets] if isinstance(opts.datasets, str) else opts.datasets
-    if decode_type == "sampling":
+    if "sampling" in decode_type:
         assert (
             sample_size is not None
         ), "Sample size must be specified for sampling decoding with --sample_size"
@@ -140,16 +147,22 @@ if __name__ == "__main__":
                 for td_test_batch in tqdm(dataloader):
                     td_reset = env.reset(td_test_batch).to(device)
                     start_time = time.time()
+                    extra = (
+                        {"decode_k": opts.decode_k}
+                        if ("kparallel" in decode_type and opts.decode_k is not None)
+                        else {}
+                    )
                     out = policy(
                         td_reset,
                         env,
                         decode_type=decode_type,
                         num_samples=sample_size,
                         return_actions=False,
+                        **extra,
                     )
                     end_time = time.time()
                     inference_time = end_time - start_time
-                    if decode_type == "greedy":
+                    if "greedy" in decode_type:
                         costs.extend(-out["reward"])
                     else:
                         costs.extend(
