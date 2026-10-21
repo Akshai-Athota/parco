@@ -10,14 +10,30 @@
 
 source .venv/bin/activate
 
-# k-parallel decoding with k = 2: two pairs per pass, the first interior point of the front
+# ---------------------------------------------------------------------------
+# k-parallel decoding, k = 2
+#   interior point of the Pareto front: 2 pairs per decoder pass
 #
-#   k = 1  full sequential (idea 1)   - slowest, most accurate
-#   k = 7  masked joint   (idea 3)    - fastest, parallel-length episodes
+# Per decoder pass, k pairs are drawn from ONE joint log-softmax over the
+# flattened M x (M+N) logits; after each pick that agent's ROW and that node's
+# COLUMN are masked, so no two agents can be given the same node. Agents not
+# reached in the pass repeat their current node (a no-op in the env).
 #
-# Only model.policy.decode_k differs between these scripts; everything else
-# matches the other runs so the Pareto front is measured under one recipe.
-# The run directory is named parco_k2, so the k values never collide.
+#   k = 1  -> idea 1 (full sequential)      slowest, most accurate
+#   k = 7  -> idea 3 (masked joint)         fastest, parallel-length episodes
+#
+# Only model.policy.decode_k differs between these scripts. Everything else
+# matches the other runs, so the front is measured under one recipe.
+# Run dir: logs/train/runs/hcvrp_n100_m7/parco_k2/<timestamp>/
+# ---------------------------------------------------------------------------
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
-srun python train.py experiment=hcvrp_k     model.policy.decode_k=2     logger.wandb.offline=True     model.batch_size=16     model.val_batch_size=16     model.test_batch_size=16     model.num_augment=4     +model.dataloader_num_workers=5     +trainer.accumulate_grad_batches=8
+srun python train.py experiment=hcvrp_k \
+    model.policy.decode_k=2 \
+    logger.wandb.offline=True \
+    model.batch_size=16 \
+    model.val_batch_size=16 \
+    model.test_batch_size=16 \
+    model.num_augment=4 \
+    +model.dataloader_num_workers=5 \
+    +trainer.accumulate_grad_batches=8

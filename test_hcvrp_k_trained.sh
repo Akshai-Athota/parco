@@ -16,7 +16,7 @@ export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 # against test_hcvrp_k_sweep.sh (one model, every k) to separate
 #   "decoding at k helps"  from  "training at k helps".
 
-for K in 1 2 4 7; do
+for K in 1 2 3 4 5 6 7; do
   CKPT=$(ls -td logs/train/runs/hcvrp_n100_m7/parco_k${K}/*/checkpoints/last.ckpt 2>/dev/null | head -n 1)
   if [ -z "${CKPT}" ]; then
     echo "[k = ${K}] no checkpoint found, skipping"
