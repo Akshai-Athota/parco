@@ -1,0 +1,8 @@
+- experiment=hcvrp_dynamic_encoding
+- logger.wandb.offline=True
+- model.batch_size=4
+- model.val_batch_size=4
+- model.test_batch_size=4
+- model.num_augment=4
+- +model.dataloader_num_workers=5
+- +trainer.accumulate_grad_batches=32
