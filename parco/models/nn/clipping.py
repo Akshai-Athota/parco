@@ -29,17 +29,34 @@ import torch
 from rl4co.utils.decoding import process_logits as rl4co_process_logits
 from torch import Tensor
 
-CLIP_MODES = ("fixed", "scaled", "none")
+CLIP_MODES = ("fixed", "scaled", "general", "none")
 
 
-def tanh_clip(logits: Tensor, clip_value: float, mode: str = "fixed") -> Tensor:
+def tanh_clip(
+    logits: Tensor, clip_value: float, mode: str = "fixed", tau: float = None
+) -> Tensor:
     """Clip ``logits`` into ``(-clip_value, clip_value)`` with a tanh.
+
+    All three modes are points of one family ``g * tanh(z / tau)``, whose two
+    properties are worth separating:
+
+        gain at the origin = g / tau        saturation knee ~ 2 * tau
+
+    - ``"fixed"``   : ``g = C, tau = 1``  -> gain C   (PARCO / Bello et al.)
+    - ``"scaled"``  : ``g = C, tau = C``  -> gain 1   (Gemma-2 soft-capping)
+    - ``"general"`` : ``g = C, tau = tau`` -> gain C / tau, set both explicitly
+
+    Note that "fixed" and "scaled" differ in gain by a factor C as well as in
+    where they saturate, so swapping one for the other at equal C changes two
+    things at once. ``"general"`` exists to vary them independently: e.g.
+    ``C = 30, tau = 3`` keeps PARCO's gain of 10 while moving the knee from
+    ~2 to ~6.
 
     Args:
         logits: tensor to clip.
-        clip_value: the bound ``C``. Non-positive values disable clipping.
-        mode: ``"fixed"`` for ``C * tanh(z)``, ``"scaled"`` for ``C * tanh(z / C)``,
-            ``"none"`` to disable clipping.
+        clip_value: the bound ``g``. Non-positive values disable clipping.
+        mode: one of ``CLIP_MODES``.
+        tau: the input scale, required for ``"general"`` and ignored otherwise.
     """
     if mode not in CLIP_MODES:
         raise ValueError(f"Unknown tanh clip mode '{mode}'. Available: {CLIP_MODES}")
@@ -47,7 +64,11 @@ def tanh_clip(logits: Tensor, clip_value: float, mode: str = "fixed") -> Tensor:
         return logits
     if mode == "fixed":
         return clip_value * torch.tanh(logits)
-    return clip_value * torch.tanh(logits / clip_value)
+    if mode == "scaled":
+        return clip_value * torch.tanh(logits / clip_value)
+    if tau is None or tau <= 0:
+        raise ValueError("mode='general' requires a positive tau")
+    return clip_value * torch.tanh(logits / tau)
 
 
 def process_logits(
@@ -55,6 +76,7 @@ def process_logits(
     mask: Optional[Tensor] = None,
     tanh_clipping: float = 0,
     tanh_clip_mode: str = "fixed",
+    tanh_clip_tau: float = None,
     **kwargs,
 ) -> Tensor:
     """Drop-in replacement for ``rl4co.utils.decoding.process_logits`` that also
@@ -63,7 +85,7 @@ def process_logits(
     We apply the clipping ourselves and then delegate the rest (masking,
     temperature, top-k/top-p, log-softmax) to rl4co with clipping disabled.
     """
-    logits = tanh_clip(logits, tanh_clipping, tanh_clip_mode)
+    logits = tanh_clip(logits, tanh_clipping, tanh_clip_mode, tanh_clip_tau)
     return rl4co_process_logits(logits, mask, tanh_clipping=0, **kwargs)
 
 
@@ -80,11 +102,14 @@ class TanhClippedSDPA:
     picklable.
     """
 
-    def __init__(self, clip_value: float = 10.0, mode: str = "scaled"):
+    def __init__(
+        self, clip_value: float = 10.0, mode: str = "scaled", tau: float = None
+    ):
         if mode not in CLIP_MODES:
             raise ValueError(f"Unknown tanh clip mode '{mode}'. Available: {CLIP_MODES}")
         self.clip_value = clip_value
         self.mode = mode
+        self.tau = tau
 
     def __call__(
         self,
@@ -100,7 +125,7 @@ class TanhClippedSDPA:
         scores = torch.matmul(q, k.transpose(-2, -1)) * scale
 
         # The whole point: clip before the softmax, not after
-        scores = tanh_clip(scores, self.clip_value, self.mode)
+        scores = tanh_clip(scores, self.clip_value, self.mode, self.tau)
 
         if attn_mask is not None:
             if attn_mask.dtype == torch.bool:
@@ -122,11 +147,14 @@ class TanhClippedSDPA:
         return torch.matmul(attn_weights, v)
 
     def __repr__(self):
-        return f"{type(self).__name__}(clip_value={self.clip_value}, mode={self.mode})"
+        return (
+            f"{type(self).__name__}(clip_value={self.clip_value}, "
+            f"mode={self.mode}, tau={self.tau})"
+        )
 
 
 def get_attention_sdpa(
-    clip_value: float = 0.0, mode: str = "scaled"
+    clip_value: float = 0.0, mode: str = "scaled", tau: float = None
 ) -> Optional[TanhClippedSDPA]:
     """Build the clipped attention function, or ``None`` to keep rl4co's default.
 
@@ -135,4 +163,4 @@ def get_attention_sdpa(
     """
     if mode == "none" or clip_value is None or clip_value <= 0:
         return None
-    return TanhClippedSDPA(clip_value, mode)
+    return TanhClippedSDPA(clip_value, mode, tau)

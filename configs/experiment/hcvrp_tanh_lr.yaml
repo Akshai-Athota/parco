@@ -1,0 +1,106 @@
+# @package _global_
+
+# Idea 2, round two: the tanh clipping experiment done as a controlled sweep.
+#
+# The first run swapped C*tanh(z) for C*tanh(z/C) at a fixed C = 10. Those two
+# differ in TWO ways at once:
+#
+#     gain at the origin   fixed: C = 10      scaled: 1
+#     saturation knee      fixed: ~2          scaled: ~2C = 20
+#
+# Dividing the logits by ~C before the softmax is a ~10x temperature rise, and
+# because Adam fixes the step size in PARAMETER space while the gain sets the
+# PARAMETER -> POLICY conversion, the same number of updates moves the policy
+# ~10x less. That is an optimisation-scale change, not evidence about the
+# functional form, and it is what this sweep is designed to separate.
+#
+# Everything is exposed on the command line:
+#   model.policy.tanh_clip_mode     fixed | scaled | general | none
+#   model.policy.tanh_clipping      g, the bound
+#   model.policy.tanh_clip_tau      tau, the input scale (mode=general)
+#   model.policy.attn_tanh_clipping 0 disables the encoder-attention half
+#   model.optimizer_kwargs.lr       the learning rate
+#
+# The run name embeds all of them, so no two settings share a directory.
+
+# Override defaults: take configs from relative path
+defaults:
+  - override /model: parco.yaml
+  - override /env: hcvrp.yaml
+  - override /callbacks: default.yaml
+  - override /trainer: default.yaml
+  # - override /logger: null # comment this line to enable logging
+  - override /logger: wandb.yaml
+
+
+# NOTE: other hparams are in the env file
+generator_params:
+  num_loc: 100 # max locs
+  num_agents: 7 # min locs
+
+# Model hyperparameters
+model:
+  policy: # note: all other arguments (e.g. embeddings) are automatically taken from the env
+    # otherwise, you may pass init_embedding / context_embedding (example below)
+    _target_: "parco.models.policy.PARCOPolicy"
+    env_name: "${env.name}"
+    agent_handler: "highprob"
+    embed_dim: 128
+    # --- tanh clipping, fully parameterised ---
+    tanh_clipping: 10 # g: the bound
+    tanh_clip_mode: "fixed" # fixed | scaled | general | none
+    tanh_clip_tau: 1 # tau: input scale, used when mode=general
+    attn_tanh_clipping: 0 # 0 = leave the encoder attention unclipped
+    attn_tanh_clip_mode: "scaled"
+    attn_tanh_clip_tau: 1
+    max_steps: 1000
+    # ------------------------------------------
+    norm_after: false # true means we use Kool structure, which seems slightly worse
+    normalization: "rms"
+    use_final_norm: true # LLM way
+    parallel_gated_kwargs:
+      mlp_activation: "silu" # use MLP as in LLaMa
+    context_embedding_kwargs:
+      normalization: "rms"
+      norm_after: false # true means we use Kool structure, which seems slightly worse
+      use_final_norm: true # LLM way
+      parallel_gated_kwargs:
+        mlp_activation: "silu"
+  batch_size: 128
+  val_batch_size: ${model.batch_size}
+  test_batch_size: ${model.batch_size}
+  train_data_size: 100_000
+  val_data_size: 10_000
+  test_data_size: 10_000
+  optimizer_kwargs:
+    lr: 1e-4
+    weight_decay: 0.0
+  lr_scheduler:
+    "MultiStepLR"
+  lr_scheduler_kwargs:
+    milestones: [80, 95]
+    gamma: 0.1
+  num_augment: 8
+  train_min_agents: 3
+  train_max_agents: ${env.generator_params.num_agents} # max agents is the number of agents
+  train_min_size: 60
+  train_max_size: ${env.generator_params.num_loc} # max size is the number of locations
+
+# Logging: we use Wandb in this case
+logger:
+  wandb:
+    project: "parco-${env.name}"
+    tags: ["parco", "${env.name}", "communication", "tanh_lr"]
+    group: "${env.name}_n${env.generator_params.num_loc}_m${env.generator_params.num_agents}"
+    name: "parco_tanh_${model.policy.tanh_clip_mode}_g${model.policy.tanh_clipping}_t${model.policy.tanh_clip_tau}_attn${model.policy.attn_tanh_clipping}_lr${model.optimizer_kwargs.lr}"
+
+# Trainer: this is a customized version of the PyTorch Lightning trainer.
+trainer:
+  max_epochs: 100
+
+seed: 1234
+
+# Used to save the best model. However, we are not using this in the current setup
+callbacks:
+  model_checkpoint:
+    monitor: "val/reward/n60_m5"

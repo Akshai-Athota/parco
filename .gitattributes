@@ -1,0 +1,2 @@
+# SLURM job scripts must keep LF endings: they run on the Linux cluster
+*.sh text eol=lf

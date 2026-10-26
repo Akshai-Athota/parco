@@ -61,8 +61,11 @@ class PARCOPolicy(nn.Module):
         # two_stage_pos_sampling: bool = True,  # new, faster
         tanh_clipping: float = 10.0,  # C for the decoder logit clipping
         tanh_clip_mode: str = "fixed",  # "fixed": C*tanh(z), "scaled": C*tanh(z/C)
+        tanh_clip_tau: float = None,  # input scale for mode="general"
         attn_tanh_clipping: float = 0.0,  # C for the encoder MHA logits; 0 disables
         attn_tanh_clip_mode: str = "scaled",  # clipping form for the encoder MHA logits
+        attn_tanh_clip_tau: float = None,  # input scale for attention mode="general"
+        max_steps: int = 1_000_000,  # Safety bound on the decoding loop
         parallel_gated_kwargs: dict = None,  # ParallelGatedMLP kwargs
         sdpa_fn_decoder: (
             Callable | str
@@ -85,10 +88,14 @@ class PARCOPolicy(nn.Module):
         # Tanh clipping of the decoder logits, forwarded to the decoding strategy
         self.tanh_clipping = tanh_clipping
         self.tanh_clip_mode = tanh_clip_mode
+        self.tanh_clip_tau = tanh_clip_tau
+        self.max_steps = max_steps
 
         # Tanh clipping of the attention logits inside the encoder MHA layers.
         # None means "keep rl4co's default SDPA", i.e. no clipping as in vanilla PARCO
-        sdpa_fn_encoder = get_attention_sdpa(attn_tanh_clipping, attn_tanh_clip_mode)
+        sdpa_fn_encoder = get_attention_sdpa(
+            attn_tanh_clipping, attn_tanh_clip_mode, attn_tanh_clip_tau
+        )
 
         # Encoder and decoder
         if encoder is None:
@@ -146,10 +153,13 @@ class PARCOPolicy(nn.Module):
         return_actions: bool = True,
         return_sum_log_likelihood: bool = True,
         actions=None,
-        max_steps=1_000_000,
+        max_steps: int = None,
         return_init_embeds: bool = True,
         **decoding_kwargs,
     ) -> dict:
+        if max_steps is None:
+            max_steps = self.max_steps
+
         # Encoder: get encoder output and initial embeddings from initial state
         hidden, init_embeds = self.encoder(td)
 
@@ -173,6 +183,7 @@ class PARCOPolicy(nn.Module):
         # (an explicit decoding kwarg still wins over the policy-level default)
         decoding_kwargs.setdefault("tanh_clipping", self.tanh_clipping)
         decoding_kwargs.setdefault("tanh_clip_mode", self.tanh_clip_mode)
+        decoding_kwargs.setdefault("tanh_clip_tau", self.tanh_clip_tau)
         decode_strategy: PARCODecodingStrategy = parco_get_decoding_strategy(
             decode_type,
             num_agents=num_agents,

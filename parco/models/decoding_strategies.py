@@ -50,6 +50,7 @@ class PARCODecodingStrategy(metaclass=abc.ABCMeta):
         top_k: int = 0,
         tanh_clipping: float = 10.0,
         tanh_clip_mode: str = "fixed",  # "fixed": C*tanh(z), "scaled": C*tanh(z/C)
+        tanh_clip_tau: float = None,  # input scale for mode="general"
         multistart: bool = False,
         multisample: bool = False,
         num_samples: int = 1,
@@ -84,6 +85,7 @@ class PARCODecodingStrategy(metaclass=abc.ABCMeta):
         self.top_k = top_k
         self.tanh_clipping = tanh_clipping
         self.tanh_clip_mode = tanh_clip_mode
+        self.tanh_clip_tau = tanh_clip_tau
         if multistart:
             raise ValueError("Multistart is not supported for multi-agent decoding")
         self.multistart = multistart
@@ -173,6 +175,7 @@ class PARCODecodingStrategy(metaclass=abc.ABCMeta):
             top_k=self.top_k,
             tanh_clipping=self.tanh_clipping,
             tanh_clip_mode=self.tanh_clip_mode,
+            tanh_clip_tau=self.tanh_clip_tau,
         )
 
         logprobs, actions, td = self._step(logprobs, mask, td, **kwargs)
