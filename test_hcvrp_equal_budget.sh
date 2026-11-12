@@ -27,8 +27,25 @@ export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 # between 1x and 4x, which is the region that decides the comparison.
 # ---------------------------------------------------------------------------
 
+RUNS_ROOT=logs/train/runs/hcvrp_n100_m7
+
+echo "checkpoints visible from $(pwd):"
+for RUN in parco_tanh_fixed_g10_t1_attn0_lr0.0001 parco_k1 parco_k2 parco_k4 parco_k7; do
+  CKPT=$(ls -td ${RUNS_ROOT}/${RUN}/*/checkpoints/last.ckpt 2>/dev/null | head -n 1)
+  printf '  %-45s %s\n' "${RUN}" "${CKPT:-MISSING}"
+done
+echo
+
+# The parallel baseline is the tanh control arm, trained on branch
+# hcvrp_tanh_lr. If it shows MISSING above, its logs are in a different clone:
+# add an absolute path, e.g.
+#   --parallel_run /path/to/other/clone/${RUNS_ROOT}/parco_tanh_fixed_g10_t1_attn0_lr0.0001
+# Add 3 5 6 to --ks once those runs exist.
+
 srun python scripts/equal_budget_eval.py \
   --problem hcvrp \
+  --runs_root ${RUNS_ROOT} \
+  --ks 1 2 4 7 \
   --samples 2 3 4 6 8 12 16 24 32 \
   --budgets 1.0 1.3 2.0 3.0 4.0 6.0 8.0 16.0 32.0 \
   --reference parallel \

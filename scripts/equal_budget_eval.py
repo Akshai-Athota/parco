@@ -49,17 +49,25 @@ from parco.tasks.eval import get_dataloader
 warnings.filterwarnings("ignore", category=FutureWarning)
 torch.set_float32_matmul_precision("medium")
 
-# name -> (checkpoint glob, decode family, decode_k)
-# "parallel" is stock PARCO: the tanh control arm, which is plain fixed
-# clipping with encoder attention untouched, trained on the same 6 GPUs with
-# the same recipe as every k run. It is the baseline for this comparison.
-DEFAULT_METHODS = [
-    ("parallel", "logs/train/runs/hcvrp_n100_m7/parco_tanh_fixed_g10_t1_attn0_lr0.0001", "plain", None),
-    ("k1", "logs/train/runs/hcvrp_n100_m7/parco_k1", "kparallel", 1),
-    ("k2", "logs/train/runs/hcvrp_n100_m7/parco_k2", "kparallel", 2),
-    ("k4", "logs/train/runs/hcvrp_n100_m7/parco_k4", "kparallel", 4),
-    ("k7", "logs/train/runs/hcvrp_n100_m7/parco_k7", "kparallel", 7),
-]
+DEFAULT_RUNS_ROOT = "logs/train/runs/hcvrp_n100_m7"
+# Stock parallel PARCO is the tanh control arm: plain fixed clipping, encoder
+# attention untouched, trained on the same 6 GPUs with the same recipe as every
+# k run. It is the baseline for this comparison. Note it was trained on a
+# different branch than the k runs, so if the two sets of logs live in separate
+# clones on the cluster, point --parallel_run at an absolute path.
+DEFAULT_PARALLEL_RUN = "parco_tanh_fixed_g10_t1_attn0_lr0.0001"
+
+
+def build_methods(runs_root, parallel_run, ks):
+    """-> list of (name, run_dir, decode family, decode_k)."""
+
+    def under(path):
+        return path if os.path.isabs(path) else os.path.join(runs_root, path)
+
+    methods = [("parallel", under(parallel_run), "plain", None)]
+    for k in ks:
+        methods.append((f"k{k}", under(f"parco_k{k}"), "kparallel", k))
+    return methods
 
 
 def resolve_checkpoint(run_dir):
@@ -155,6 +163,26 @@ def main():
         "count so the measured step counts stay comparable. Peak memory "
         "scales as instances_per_batch * max(--samples).",
     )
+    ap.add_argument(
+        "--runs_root",
+        default=DEFAULT_RUNS_ROOT,
+        help="Directory holding the per-run folders.",
+    )
+    ap.add_argument(
+        "--parallel_run",
+        default=DEFAULT_PARALLEL_RUN,
+        help="Run folder for stock parallel PARCO (the tanh control arm), "
+        "relative to --runs_root, or an absolute path if that checkpoint "
+        "lives in a different clone.",
+    )
+    ap.add_argument(
+        "--ks",
+        type=int,
+        nargs="+",
+        default=[1, 2, 4, 7],
+        help="Which k-parallel models to include; expects parco_k<K> under "
+        "--runs_root. Add 3 5 6 once those runs finish.",
+    )
     ap.add_argument("--datasets", nargs="+", default=None)
     ap.add_argument("--device", default="cuda")
     ap.add_argument("--out", default="equal_budget_results.csv")
@@ -168,6 +196,11 @@ def main():
 
     if opts.datasets is None:
         data_dir = f"./data/{opts.problem}"
+        if not os.path.isdir(data_dir):
+            raise SystemExit(
+                f"no test data at {data_dir}. Run test.py once to let it "
+                "download from HuggingFace, or pass --datasets explicitly."
+            )
         paths = [f"{data_dir}/{f}" for f in os.listdir(data_dir) if "sol" not in f]
     else:
         paths = list(opts.datasets)
@@ -175,6 +208,25 @@ def main():
 
     env = HCVRPEnv()
     rows = []
+
+    # Resolve every checkpoint up front: an 8-hour sweep should fail in the
+    # first second if a path is wrong, not after the first model is done.
+    methods = build_methods(opts.runs_root, opts.parallel_run, opts.ks)
+    missing = [n for n, d, _, _ in methods if resolve_checkpoint(d) is None]
+    if missing:
+        print(f"[warn] no checkpoint found for: {', '.join(missing)}")
+        for n, d, _, _ in methods:
+            if n in missing:
+                print(f"         {n:10} looked under {d}")
+        if "parallel" in missing:
+            raise SystemExit(
+                "the parallel baseline is missing, so no matched-budget table "
+                "can be built. It is the tanh control arm, which was trained "
+                "on a different branch -- point --parallel_run at its run "
+                "folder (an absolute path is fine)."
+            )
+    if len(missing) == len(methods):
+        raise SystemExit("no checkpoints resolved at all; check --runs_root")
 
     # Written incrementally: this sweep runs for hours, and a single OOM late in
     # it must not take every earlier measurement with it.
@@ -188,7 +240,7 @@ def main():
     csv_fh.flush()
 
     try:
-        for name, run_dir, family, decode_k in DEFAULT_METHODS:
+        for name, run_dir, family, decode_k in methods:
             ckpt = resolve_checkpoint(run_dir)
             if ckpt is None:
                 print(f"[{name}] no checkpoint under {run_dir}, skipping")
