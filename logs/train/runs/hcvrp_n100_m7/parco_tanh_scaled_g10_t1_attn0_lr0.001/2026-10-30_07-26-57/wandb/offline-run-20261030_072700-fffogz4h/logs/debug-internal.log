@@ -1,0 +1,16 @@
+{"time":"2026-10-30T07:27:00.561579556+01:00","level":"INFO","msg":"stream: starting","core version":"0.19.10","symlink path":"/home/athota/parco/logs/train/runs/hcvrp_n100_m7/parco_tanh_scaled_g10_t1_attn0_lr0.001/2026-10-30_07-26-57/wandb/offline-run-20261030_072700-fffogz4h/logs/debug-core.log"}
+{"time":"2026-10-30T07:27:00.683529363+01:00","level":"WARN","msg":"GraphQL client is nil, skipping feature loading"}
+{"time":"2026-10-30T07:27:00.684817136+01:00","level":"INFO","msg":"created new stream","id":"fffogz4h"}
+{"time":"2026-10-30T07:27:00.684848022+01:00","level":"INFO","msg":"stream: started","id":"fffogz4h"}
+{"time":"2026-10-30T07:27:00.684859965+01:00","level":"INFO","msg":"writer: Do: started","stream_id":"fffogz4h"}
+{"time":"2026-10-30T07:27:00.684884114+01:00","level":"INFO","msg":"sender: started","stream_id":"fffogz4h"}
+{"time":"2026-10-30T07:27:00.68495562+01:00","level":"INFO","msg":"handler: started","stream_id":"fffogz4h"}
+{"time":"2026-10-30T07:27:00.690168547+01:00","level":"INFO","msg":"Starting system monitor"}
+{"time":"2026-10-31T00:55:48.319183982+01:00","level":"INFO","msg":"Stopping system monitor"}
+{"time":"2026-10-31T00:55:48.319679311+01:00","level":"INFO","msg":"Stopped system monitor"}
+{"time":"2026-10-31T00:55:48.320556556+01:00","level":"INFO","msg":"handler: operation stats","stats":{}}
+{"time":"2026-10-31T00:55:48.326224694+01:00","level":"INFO","msg":"stream: closing","id":"fffogz4h"}
+{"time":"2026-10-31T00:55:48.32625492+01:00","level":"INFO","msg":"handler: closed","stream_id":"fffogz4h"}
+{"time":"2026-10-31T00:55:48.326270294+01:00","level":"INFO","msg":"writer: Close: closed","stream_id":"fffogz4h"}
+{"time":"2026-10-31T00:55:48.326285264+01:00","level":"INFO","msg":"sender: closed","stream_id":"fffogz4h"}
+{"time":"2026-10-31T00:55:48.327367338+01:00","level":"INFO","msg":"stream: closed","id":"fffogz4h"}

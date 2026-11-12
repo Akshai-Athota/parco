@@ -1,0 +1,210 @@
+/home/athota/parco/.venv/lib/python3.13/site-packages/torchrl/data/replay_buffers/samplers.py:37: UserWarning: Failed to import torchrl C++ binaries. Some modules (eg, prioritized replay buffers) may not work with your installation. This is likely due to a discrepancy between your package version and the PyTorch version. Make sure both are compatible. Usually, torchrl majors follow the pytorch majors within a few days around the release. For instance, TorchRL 0.5 requires PyTorch 2.4.0, and TorchRL 0.6 requires PyTorch 2.5.0.
+  warnings.warn(EXTENSION_WARNING)
+Returning existing local_dir `.` as remote repo cannot be accessed in `snapshot_download` ((MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /api/models/ai4co/parco/revision/main (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7eca994d3b60>: Failed to resolve \'huggingface.co\' ([Errno -3] Temporary failure in name resolution)"))'), '(Request ID: a9aff681-7b92-484f-82bb-282ce204e4aa)')).
+Traceback (most recent call last):
+  File "/home/athota/parco/test.py", line 115, in <module>
+    model = PARCORLModule.load_from_checkpoint(
+        checkpoint_path, map_location="cpu", strict=False
+    )
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/rl4co/models/rl/reinforce/reinforce.py", line 189, in load_from_checkpoint
+    loaded = _load_from_checkpoint(
+        cls,
+    ...<4 lines>...
+        **kwargs,
+    )
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/lightning/pytorch/core/saving.py", line 63, in _load_from_checkpoint
+    checkpoint = pl_load(checkpoint_path, map_location=map_location)
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/lightning/fabric/utilities/cloud_io.py", line 59, in _load
+    with fs.open(path_or_url, "rb") as f:
+         ~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/fsspec/spec.py", line 1310, in open
+    f = self._open(
+        path,
+    ...<4 lines>...
+        **kwargs,
+    )
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/fsspec/implementations/local.py", line 201, in _open
+    return LocalFileOpener(path, mode, fs=self, **kwargs)
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/fsspec/implementations/local.py", line 365, in __init__
+    self._open()
+    ~~~~~~~~~~^^
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/fsspec/implementations/local.py", line 370, in _open
+    self.f = open(self.path, mode=self.mode)
+             ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+IsADirectoryError: [Errno 21] Is a directory: '/home/athota/parco'
+srun: error: stud-000: task 0: Exited with exit code 1
+/home/athota/parco/.venv/lib/python3.13/site-packages/torchrl/data/replay_buffers/samplers.py:37: UserWarning: Failed to import torchrl C++ binaries. Some modules (eg, prioritized replay buffers) may not work with your installation. This is likely due to a discrepancy between your package version and the PyTorch version. Make sure both are compatible. Usually, torchrl majors follow the pytorch majors within a few days around the release. For instance, TorchRL 0.5 requires PyTorch 2.4.0, and TorchRL 0.6 requires PyTorch 2.5.0.
+  warnings.warn(EXTENSION_WARNING)
+Returning existing local_dir `.` as remote repo cannot be accessed in `snapshot_download` ((MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /api/models/ai4co/parco/revision/main (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x79ae2e5cba10>: Failed to resolve \'huggingface.co\' ([Errno -2] Name or service not known)"))'), '(Request ID: 134746c1-bfeb-4e9f-9ca5-f64606bce028)')).
+Traceback (most recent call last):
+  File "/home/athota/parco/test.py", line 115, in <module>
+    model = PARCORLModule.load_from_checkpoint(
+        checkpoint_path, map_location="cpu", strict=False
+    )
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/rl4co/models/rl/reinforce/reinforce.py", line 189, in load_from_checkpoint
+    loaded = _load_from_checkpoint(
+        cls,
+    ...<4 lines>...
+        **kwargs,
+    )
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/lightning/pytorch/core/saving.py", line 63, in _load_from_checkpoint
+    checkpoint = pl_load(checkpoint_path, map_location=map_location)
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/lightning/fabric/utilities/cloud_io.py", line 59, in _load
+    with fs.open(path_or_url, "rb") as f:
+         ~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/fsspec/spec.py", line 1310, in open
+    f = self._open(
+        path,
+    ...<4 lines>...
+        **kwargs,
+    )
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/fsspec/implementations/local.py", line 201, in _open
+    return LocalFileOpener(path, mode, fs=self, **kwargs)
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/fsspec/implementations/local.py", line 365, in __init__
+    self._open()
+    ~~~~~~~~~~^^
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/fsspec/implementations/local.py", line 370, in _open
+    self.f = open(self.path, mode=self.mode)
+             ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+IsADirectoryError: [Errno 21] Is a directory: '/home/athota/parco'
+srun: error: stud-000: task 0: Exited with exit code 1
+/home/athota/parco/.venv/lib/python3.13/site-packages/torchrl/data/replay_buffers/samplers.py:37: UserWarning: Failed to import torchrl C++ binaries. Some modules (eg, prioritized replay buffers) may not work with your installation. This is likely due to a discrepancy between your package version and the PyTorch version. Make sure both are compatible. Usually, torchrl majors follow the pytorch majors within a few days around the release. For instance, TorchRL 0.5 requires PyTorch 2.4.0, and TorchRL 0.6 requires PyTorch 2.5.0.
+  warnings.warn(EXTENSION_WARNING)
+Returning existing local_dir `.` as remote repo cannot be accessed in `snapshot_download` ((MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /api/models/ai4co/parco/revision/main (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x791b14dd3a10>: Failed to resolve \'huggingface.co\' ([Errno -2] Name or service not known)"))'), '(Request ID: 6551aca9-d7ac-4337-a668-47c00594fdcf)')).
+Traceback (most recent call last):
+  File "/home/athota/parco/test.py", line 115, in <module>
+    model = PARCORLModule.load_from_checkpoint(
+        checkpoint_path, map_location="cpu", strict=False
+    )
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/rl4co/models/rl/reinforce/reinforce.py", line 189, in load_from_checkpoint
+    loaded = _load_from_checkpoint(
+        cls,
+    ...<4 lines>...
+        **kwargs,
+    )
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/lightning/pytorch/core/saving.py", line 63, in _load_from_checkpoint
+    checkpoint = pl_load(checkpoint_path, map_location=map_location)
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/lightning/fabric/utilities/cloud_io.py", line 59, in _load
+    with fs.open(path_or_url, "rb") as f:
+         ~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/fsspec/spec.py", line 1310, in open
+    f = self._open(
+        path,
+    ...<4 lines>...
+        **kwargs,
+    )
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/fsspec/implementations/local.py", line 201, in _open
+    return LocalFileOpener(path, mode, fs=self, **kwargs)
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/fsspec/implementations/local.py", line 365, in __init__
+    self._open()
+    ~~~~~~~~~~^^
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/fsspec/implementations/local.py", line 370, in _open
+    self.f = open(self.path, mode=self.mode)
+             ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+IsADirectoryError: [Errno 21] Is a directory: '/home/athota/parco'
+srun: error: stud-000: task 0: Exited with exit code 1
+/home/athota/parco/.venv/lib/python3.13/site-packages/torchrl/data/replay_buffers/samplers.py:37: UserWarning: Failed to import torchrl C++ binaries. Some modules (eg, prioritized replay buffers) may not work with your installation. This is likely due to a discrepancy between your package version and the PyTorch version. Make sure both are compatible. Usually, torchrl majors follow the pytorch majors within a few days around the release. For instance, TorchRL 0.5 requires PyTorch 2.4.0, and TorchRL 0.6 requires PyTorch 2.5.0.
+  warnings.warn(EXTENSION_WARNING)
+Returning existing local_dir `.` as remote repo cannot be accessed in `snapshot_download` ((MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /api/models/ai4co/parco/revision/main (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x794e2edd3a10>: Failed to resolve \'huggingface.co\' ([Errno -2] Name or service not known)"))'), '(Request ID: 2b0c97a1-f615-4c2b-85c6-d8908ba18edb)')).
+Traceback (most recent call last):
+  File "/home/athota/parco/test.py", line 115, in <module>
+    model = PARCORLModule.load_from_checkpoint(
+        checkpoint_path, map_location="cpu", strict=False
+    )
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/rl4co/models/rl/reinforce/reinforce.py", line 189, in load_from_checkpoint
+    loaded = _load_from_checkpoint(
+        cls,
+    ...<4 lines>...
+        **kwargs,
+    )
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/lightning/pytorch/core/saving.py", line 63, in _load_from_checkpoint
+    checkpoint = pl_load(checkpoint_path, map_location=map_location)
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/lightning/fabric/utilities/cloud_io.py", line 59, in _load
+    with fs.open(path_or_url, "rb") as f:
+         ~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/fsspec/spec.py", line 1310, in open
+    f = self._open(
+        path,
+    ...<4 lines>...
+        **kwargs,
+    )
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/fsspec/implementations/local.py", line 201, in _open
+    return LocalFileOpener(path, mode, fs=self, **kwargs)
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/fsspec/implementations/local.py", line 365, in __init__
+    self._open()
+    ~~~~~~~~~~^^
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/fsspec/implementations/local.py", line 370, in _open
+    self.f = open(self.path, mode=self.mode)
+             ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+IsADirectoryError: [Errno 21] Is a directory: '/home/athota/parco'
+srun: error: stud-000: task 0: Exited with exit code 1
+/home/athota/parco/.venv/lib/python3.13/site-packages/torchrl/data/replay_buffers/samplers.py:37: UserWarning: Failed to import torchrl C++ binaries. Some modules (eg, prioritized replay buffers) may not work with your installation. This is likely due to a discrepancy between your package version and the PyTorch version. Make sure both are compatible. Usually, torchrl majors follow the pytorch majors within a few days around the release. For instance, TorchRL 0.5 requires PyTorch 2.4.0, and TorchRL 0.6 requires PyTorch 2.5.0.
+  warnings.warn(EXTENSION_WARNING)
+Returning existing local_dir `.` as remote repo cannot be accessed in `snapshot_download` ((MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /api/models/ai4co/parco/revision/main (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x77d6af6cfa10>: Failed to resolve \'huggingface.co\' ([Errno -3] Temporary failure in name resolution)"))'), '(Request ID: 58f53d98-76ae-42b6-9050-eb84350a2d9a)')).
+Traceback (most recent call last):
+  File "/home/athota/parco/test.py", line 115, in <module>
+    model = PARCORLModule.load_from_checkpoint(
+        checkpoint_path, map_location="cpu", strict=False
+    )
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/rl4co/models/rl/reinforce/reinforce.py", line 189, in load_from_checkpoint
+    loaded = _load_from_checkpoint(
+        cls,
+    ...<4 lines>...
+        **kwargs,
+    )
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/lightning/pytorch/core/saving.py", line 63, in _load_from_checkpoint
+    checkpoint = pl_load(checkpoint_path, map_location=map_location)
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/lightning/fabric/utilities/cloud_io.py", line 59, in _load
+    with fs.open(path_or_url, "rb") as f:
+         ~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/fsspec/spec.py", line 1310, in open
+    f = self._open(
+        path,
+    ...<4 lines>...
+        **kwargs,
+    )
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/fsspec/implementations/local.py", line 201, in _open
+    return LocalFileOpener(path, mode, fs=self, **kwargs)
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/fsspec/implementations/local.py", line 365, in __init__
+    self._open()
+    ~~~~~~~~~~^^
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/fsspec/implementations/local.py", line 370, in _open
+    self.f = open(self.path, mode=self.mode)
+             ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+IsADirectoryError: [Errno 21] Is a directory: '/home/athota/parco'
+srun: error: stud-000: task 0: Exited with exit code 1
+/home/athota/parco/.venv/lib/python3.13/site-packages/torchrl/data/replay_buffers/samplers.py:37: UserWarning: Failed to import torchrl C++ binaries. Some modules (eg, prioritized replay buffers) may not work with your installation. This is likely due to a discrepancy between your package version and the PyTorch version. Make sure both are compatible. Usually, torchrl majors follow the pytorch majors within a few days around the release. For instance, TorchRL 0.5 requires PyTorch 2.4.0, and TorchRL 0.6 requires PyTorch 2.5.0.
+  warnings.warn(EXTENSION_WARNING)
+Returning existing local_dir `.` as remote repo cannot be accessed in `snapshot_download` ((MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /api/models/ai4co/parco/revision/main (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x706738cc3a10>: Failed to resolve \'huggingface.co\' ([Errno -2] Name or service not known)"))'), '(Request ID: b4eebf9a-e954-4024-847e-33c0ffa88949)')).
+Traceback (most recent call last):
+  File "/home/athota/parco/test.py", line 115, in <module>
+    model = PARCORLModule.load_from_checkpoint(
+        checkpoint_path, map_location="cpu", strict=False
+    )
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/rl4co/models/rl/reinforce/reinforce.py", line 189, in load_from_checkpoint
+    loaded = _load_from_checkpoint(
+        cls,
+    ...<4 lines>...
+        **kwargs,
+    )
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/lightning/pytorch/core/saving.py", line 63, in _load_from_checkpoint
+    checkpoint = pl_load(checkpoint_path, map_location=map_location)
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/lightning/fabric/utilities/cloud_io.py", line 59, in _load
+    with fs.open(path_or_url, "rb") as f:
+         ~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/fsspec/spec.py", line 1310, in open
+    f = self._open(
+        path,
+    ...<4 lines>...
+        **kwargs,
+    )
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/fsspec/implementations/local.py", line 201, in _open
+    return LocalFileOpener(path, mode, fs=self, **kwargs)
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/fsspec/implementations/local.py", line 365, in __init__
+    self._open()
+    ~~~~~~~~~~^^
+  File "/home/athota/parco/.venv/lib/python3.13/site-packages/fsspec/implementations/local.py", line 370, in _open
+    self.f = open(self.path, mode=self.mode)
+             ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+IsADirectoryError: [Errno 21] Is a directory: '/home/athota/parco'
+srun: error: stud-000: task 0: Exited with exit code 1
