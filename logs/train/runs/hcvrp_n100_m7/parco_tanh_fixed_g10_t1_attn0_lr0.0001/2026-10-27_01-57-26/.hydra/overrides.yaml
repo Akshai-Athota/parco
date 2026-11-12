@@ -1,0 +1,13 @@
+- experiment=hcvrp_tanh_lr
+- model.policy.tanh_clip_mode=fixed
+- model.policy.tanh_clipping=10
+- model.policy.tanh_clip_tau=1
+- model.policy.attn_tanh_clipping=0
+- model.optimizer_kwargs.lr=1e-4
+- logger.wandb.offline=True
+- model.batch_size=16
+- model.val_batch_size=16
+- model.test_batch_size=16
+- model.num_augment=4
+- +model.dataloader_num_workers=5
+- +trainer.accumulate_grad_batches=8

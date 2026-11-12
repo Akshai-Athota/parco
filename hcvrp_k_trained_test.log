@@ -1,0 +1,264 @@
+==========================================================
+[k = 1] trained and evaluated at k = 1
+checkpoint: logs/train/runs/hcvrp_n100_m7/parco_k1/2026-10-16_02-29-57/checkpoints/last.ckpt
+==========================================================
+Loading checkpoint from  logs/train/runs/hcvrp_n100_m7/parco_k1/2026-10-16_02-29-57/checkpoints/last.ckpt
+Loading checkpoint from  logs/train/runs/hcvrp_n100_m7/parco_k1/2026-10-16_02-29-57/checkpoints/last.ckpt
+Loading ./data/hcvrp/n100_m3_seed24610.npz
+Average cost: 11.4836
+Per step inference time: 0.4370s
+Total inference time: 4.3702s
+Average eval steps: 124.60
+Loading ./data/hcvrp/n100_m5_seed24610.npz
+Average cost: 6.9243
+Per step inference time: 0.3207s
+Total inference time: 3.2065s
+Average eval steps: 122.00
+Loading ./data/hcvrp/n100_m7_seed24610.npz
+Average cost: 5.0461
+Per step inference time: 0.3256s
+Total inference time: 3.2559s
+Average eval steps: 121.10
+Loading ./data/hcvrp/n40_m3_seed24610.npz
+Average cost: 5.5669
+Per step inference time: 0.1319s
+Total inference time: 1.3192s
+Average eval steps: 50.20
+Loading ./data/hcvrp/n40_m5_seed24610.npz
+Average cost: 3.5573
+Per step inference time: 0.1281s
+Total inference time: 1.2812s
+Average eval steps: 48.90
+Loading ./data/hcvrp/n40_m7_seed24610.npz
+Average cost: 2.8649
+Per step inference time: 0.1236s
+Total inference time: 1.2358s
+Average eval steps: 46.90
+Loading ./data/hcvrp/n60_m3_seed24610.npz
+Average cost: 7.4667
+Per step inference time: 0.1934s
+Total inference time: 1.9343s
+Average eval steps: 74.30
+Loading ./data/hcvrp/n60_m5_seed24610.npz
+Average cost: 4.6451
+Per step inference time: 0.1912s
+Total inference time: 1.9116s
+Average eval steps: 73.00
+Loading ./data/hcvrp/n60_m7_seed24610.npz
+Average cost: 3.4813
+Per step inference time: 0.1876s
+Total inference time: 1.8760s
+Average eval steps: 71.40
+Loading ./data/hcvrp/n80_m3_seed24610.npz
+Average cost: 9.5481
+Per step inference time: 0.2592s
+Total inference time: 2.5921s
+Average eval steps: 99.60
+Loading ./data/hcvrp/n80_m5_seed24610.npz
+Average cost: 5.8043
+Per step inference time: 0.2555s
+Total inference time: 2.5553s
+Average eval steps: 97.50
+Loading ./data/hcvrp/n80_m7_seed24610.npz
+Average cost: 4.2676
+Per step inference time: 0.2529s
+Total inference time: 2.5286s
+Average eval steps: 96.00
+==========================================================
+[k = 2] trained and evaluated at k = 2
+checkpoint: logs/train/runs/hcvrp_n100_m7/parco_k2/2026-10-17_10-47-56/checkpoints/last.ckpt
+==========================================================
+Loading checkpoint from  logs/train/runs/hcvrp_n100_m7/parco_k2/2026-10-17_10-47-56/checkpoints/last.ckpt
+Loading checkpoint from  logs/train/runs/hcvrp_n100_m7/parco_k2/2026-10-17_10-47-56/checkpoints/last.ckpt
+Loading ./data/hcvrp/n100_m3_seed24610.npz
+Average cost: 11.6097
+Per step inference time: 0.2391s
+Total inference time: 2.3911s
+Average eval steps: 62.40
+Loading ./data/hcvrp/n100_m5_seed24610.npz
+Average cost: 6.9809
+Per step inference time: 0.1890s
+Total inference time: 1.8900s
+Average eval steps: 61.40
+Loading ./data/hcvrp/n100_m7_seed24610.npz
+Average cost: 5.0946
+Per step inference time: 0.1910s
+Total inference time: 1.9103s
+Average eval steps: 61.00
+Loading ./data/hcvrp/n40_m3_seed24610.npz
+Average cost: 5.7305
+Per step inference time: 0.0783s
+Total inference time: 0.7829s
+Average eval steps: 25.40
+Loading ./data/hcvrp/n40_m5_seed24610.npz
+Average cost: 3.6439
+Per step inference time: 0.0768s
+Total inference time: 0.7683s
+Average eval steps: 24.90
+Loading ./data/hcvrp/n40_m7_seed24610.npz
+Average cost: 2.9341
+Per step inference time: 0.0775s
+Total inference time: 0.7752s
+Average eval steps: 24.60
+Loading ./data/hcvrp/n60_m3_seed24610.npz
+Average cost: 7.6026
+Per step inference time: 0.1146s
+Total inference time: 1.1464s
+Average eval steps: 37.50
+Loading ./data/hcvrp/n60_m5_seed24610.npz
+Average cost: 4.7171
+Per step inference time: 0.1137s
+Total inference time: 1.1372s
+Average eval steps: 36.90
+Loading ./data/hcvrp/n60_m7_seed24610.npz
+Average cost: 3.5362
+Per step inference time: 0.1123s
+Total inference time: 1.1229s
+Average eval steps: 36.30
+Loading ./data/hcvrp/n80_m3_seed24610.npz
+Average cost: 9.6767
+Per step inference time: 0.1530s
+Total inference time: 1.5304s
+Average eval steps: 50.10
+Loading ./data/hcvrp/n80_m5_seed24610.npz
+Average cost: 5.8700
+Per step inference time: 0.1513s
+Total inference time: 1.5126s
+Average eval steps: 49.30
+Loading ./data/hcvrp/n80_m7_seed24610.npz
+Average cost: 4.3184
+Per step inference time: 0.1510s
+Total inference time: 1.5102s
+Average eval steps: 48.50
+==========================================================
+[k = 4] trained and evaluated at k = 4
+checkpoint: logs/train/runs/hcvrp_n100_m7/parco_k4/2026-10-18_17-28-40/checkpoints/last.ckpt
+==========================================================
+Loading checkpoint from  logs/train/runs/hcvrp_n100_m7/parco_k4/2026-10-18_17-28-40/checkpoints/last.ckpt
+Loading checkpoint from  logs/train/runs/hcvrp_n100_m7/parco_k4/2026-10-18_17-28-40/checkpoints/last.ckpt
+Loading ./data/hcvrp/n100_m3_seed24610.npz
+Average cost: 12.0446
+Per step inference time: 0.2908s
+Total inference time: 2.9082s
+Average eval steps: 42.00
+Loading ./data/hcvrp/n100_m5_seed24610.npz
+Average cost: 7.2242
+Per step inference time: 0.1564s
+Total inference time: 1.5644s
+Average eval steps: 31.00
+Loading ./data/hcvrp/n100_m7_seed24610.npz
+Average cost: 5.2467
+Per step inference time: 0.1650s
+Total inference time: 1.6496s
+Average eval steps: 31.00
+Loading ./data/hcvrp/n40_m3_seed24610.npz
+Average cost: 6.0268
+Per step inference time: 0.0780s
+Total inference time: 0.7799s
+Average eval steps: 17.40
+Loading ./data/hcvrp/n40_m5_seed24610.npz
+Average cost: 3.8704
+Per step inference time: 0.0670s
+Total inference time: 0.6696s
+Average eval steps: 13.00
+Loading ./data/hcvrp/n40_m7_seed24610.npz
+Average cost: 2.9971
+Per step inference time: 0.0670s
+Total inference time: 0.6700s
+Average eval steps: 13.00
+Loading ./data/hcvrp/n60_m3_seed24610.npz
+Average cost: 7.9545
+Per step inference time: 0.1148s
+Total inference time: 1.1482s
+Average eval steps: 25.40
+Loading ./data/hcvrp/n60_m5_seed24610.npz
+Average cost: 4.9494
+Per step inference time: 0.0980s
+Total inference time: 0.9802s
+Average eval steps: 19.10
+Loading ./data/hcvrp/n60_m7_seed24610.npz
+Average cost: 3.6722
+Per step inference time: 0.0955s
+Total inference time: 0.9549s
+Average eval steps: 19.00
+Loading ./data/hcvrp/n80_m3_seed24610.npz
+Average cost: 10.0808
+Per step inference time: 0.1509s
+Total inference time: 1.5089s
+Average eval steps: 33.90
+Loading ./data/hcvrp/n80_m5_seed24610.npz
+Average cost: 6.0962
+Per step inference time: 0.1237s
+Total inference time: 1.2373s
+Average eval steps: 25.00
+Loading ./data/hcvrp/n80_m7_seed24610.npz
+Average cost: 4.4685
+Per step inference time: 0.1256s
+Total inference time: 1.2564s
+Average eval steps: 25.00
+==========================================================
+[k = 7] trained and evaluated at k = 7
+checkpoint: logs/train/runs/hcvrp_n100_m7/parco_k7/2026-10-19_11-48-36/checkpoints/last.ckpt
+==========================================================
+Loading checkpoint from  logs/train/runs/hcvrp_n100_m7/parco_k7/2026-10-19_11-48-36/checkpoints/last.ckpt
+Loading checkpoint from  logs/train/runs/hcvrp_n100_m7/parco_k7/2026-10-19_11-48-36/checkpoints/last.ckpt
+Loading ./data/hcvrp/n100_m3_seed24610.npz
+Average cost: 12.1107
+Per step inference time: 0.2332s
+Total inference time: 2.3325s
+Average eval steps: 42.00
+Loading ./data/hcvrp/n100_m5_seed24610.npz
+Average cost: 7.4789
+Per step inference time: 0.1062s
+Total inference time: 1.0624s
+Average eval steps: 25.00
+Loading ./data/hcvrp/n100_m7_seed24610.npz
+Average cost: 5.5868
+Per step inference time: 0.0910s
+Total inference time: 0.9101s
+Average eval steps: 18.00
+Loading ./data/hcvrp/n40_m3_seed24610.npz
+Average cost: 5.9939
+Per step inference time: 0.0587s
+Total inference time: 0.5871s
+Average eval steps: 17.10
+Loading ./data/hcvrp/n40_m5_seed24610.npz
+Average cost: 4.0316
+Per step inference time: 0.0445s
+Total inference time: 0.4450s
+Average eval steps: 10.30
+Loading ./data/hcvrp/n40_m7_seed24610.npz
+Average cost: 3.2329
+Per step inference time: 0.0402s
+Total inference time: 0.4023s
+Average eval steps: 7.90
+Loading ./data/hcvrp/n60_m3_seed24610.npz
+Average cost: 7.9547
+Per step inference time: 0.0857s
+Total inference time: 0.8575s
+Average eval steps: 25.20
+Loading ./data/hcvrp/n60_m5_seed24610.npz
+Average cost: 5.1379
+Per step inference time: 0.0647s
+Total inference time: 0.6470s
+Average eval steps: 15.20
+Loading ./data/hcvrp/n60_m7_seed24610.npz
+Average cost: 4.0116
+Per step inference time: 0.0558s
+Total inference time: 0.5582s
+Average eval steps: 11.00
+Loading ./data/hcvrp/n80_m3_seed24610.npz
+Average cost: 10.0729
+Per step inference time: 0.1158s
+Total inference time: 1.1577s
+Average eval steps: 33.80
+Loading ./data/hcvrp/n80_m5_seed24610.npz
+Average cost: 6.3291
+Per step inference time: 0.0854s
+Total inference time: 0.8541s
+Average eval steps: 20.20
+Loading ./data/hcvrp/n80_m7_seed24610.npz
+Average cost: 4.8180
+Per step inference time: 0.0728s
+Total inference time: 0.7280s
+Average eval steps: 14.50

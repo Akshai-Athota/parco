@@ -1,0 +1,37 @@
+checkpoint: 
+==========================================================
+[k = 1]  = full sequential
+==========================================================
+Loading checkpoint from  
+Checkpoint not found, downloading data from HuggingFace...
+Loading checkpoint from  
+==========================================================
+[k = 2]  interior point
+==========================================================
+Loading checkpoint from  
+Checkpoint not found, downloading data from HuggingFace...
+Loading checkpoint from  
+==========================================================
+[k = 3]  interior point
+==========================================================
+Loading checkpoint from  
+Checkpoint not found, downloading data from HuggingFace...
+Loading checkpoint from  
+==========================================================
+[k = 4]  interior point
+==========================================================
+Loading checkpoint from  
+Checkpoint not found, downloading data from HuggingFace...
+Loading checkpoint from  
+==========================================================
+[k = 5]  interior point
+==========================================================
+Loading checkpoint from  
+Checkpoint not found, downloading data from HuggingFace...
+Loading checkpoint from  
+==========================================================
+[k = 7]  = masked joint
+==========================================================
+Loading checkpoint from  
+Checkpoint not found, downloading data from HuggingFace...
+Loading checkpoint from  

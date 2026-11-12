@@ -1,0 +1,542 @@
+[[36m2026-10-17 10:47:56,638[0m][[34mrl4co.utils.utils[0m][[32mINFO[0m] - Enforcing tags! <cfg.extras.enforce_tags=True>[0m
+[[36m2026-10-17 10:47:56,642[0m][[34mrl4co.utils.utils[0m][[32mINFO[0m] - Printing config tree with Rich! <cfg.extras.print_config=True>[0m
+CONFIG
+├── model
+│   └── _target_: parco.models.rl.PARCORLModule                                 
+│       metrics:                                                                
+│         train:                                                                
+│         - loss                                                                
+│         - reward                                                              
+│         - halting_ratio                                                       
+│         - pos_ratio                                                           
+│         val:                                                                  
+│         - reward                                                              
+│         - halting_ratio                                                       
+│         - pos_ratio                                                           
+│         test:                                                                 
+│         - reward                                                              
+│         - halting_ratio                                                       
+│         - pos_ratio                                                           
+│         log_on_step: true                                                     
+│       policy:                                                                 
+│         _target_: parco.models.policy.PARCOPolicy                             
+│         env_name: hcvrp                                                       
+│         agent_handler: highprob                                               
+│         embed_dim: 128                                                        
+│         decode_k: 2                                                           
+│         train_decode_type: kparallel_sampling                                 
+│         val_decode_type: kparallel_greedy                                     
+│         test_decode_type: kparallel_greedy                                    
+│         max_steps: 1000                                                       
+│         norm_after: false                                                     
+│         normalization: rms                                                    
+│         use_final_norm: true                                                  
+│         parallel_gated_kwargs:                                                
+│           mlp_activation: silu                                                
+│         context_embedding_kwargs:                                             
+│           normalization: rms                                                  
+│           norm_after: false                                                   
+│           use_final_norm: true                                                
+│           parallel_gated_kwargs:                                              
+│             mlp_activation: silu                                              
+│       batch_size: 16                                                          
+│       val_batch_size: 16                                                      
+│       test_batch_size: 16                                                     
+│       train_data_size: 100000                                                 
+│       val_data_size: 10000                                                    
+│       test_data_size: 10000                                                   
+│       optimizer_kwargs:                                                       
+│         lr: 0.0001                                                            
+│         weight_decay: 0.0                                                     
+│       lr_scheduler: MultiStepLR                                               
+│       lr_scheduler_kwargs:                                                    
+│         milestones:                                                           
+│         - 80                                                                  
+│         - 95                                                                  
+│         gamma: 0.1                                                            
+│       num_augment: 4                                                          
+│       train_min_agents: 3                                                     
+│       train_max_agents: 7                                                     
+│       train_min_size: 60                                                      
+│       train_max_size: 100                                                     
+│       dataloader_num_workers: 5                                               
+│                                                                               
+├── callbacks
+│   └── model_checkpoint:                                                       
+│         _target_: lightning.pytorch.callbacks.ModelCheckpoint                 
+│         dirpath: /home/athota/parco/logs/train/runs/hcvrp_n100_m7/parco_k2/202
+│         filename: epoch_{epoch:03d}                                           
+│         monitor: val/reward/n60_m5                                            
+│         verbose: false                                                        
+│         save_last: true                                                       
+│         save_top_k: 1                                                         
+│         mode: max                                                             
+│         auto_insert_metric_name: false                                        
+│         save_weights_only: false                                              
+│         every_n_train_steps: null                                             
+│         train_time_interval: null                                             
+│         every_n_epochs: null                                                  
+│         save_on_train_epoch_end: null                                         
+│       model_summary:                                                          
+│         _target_: lightning.pytorch.callbacks.RichModelSummary                
+│         max_depth: 5                                                          
+│       rich_progress_bar:                                                      
+│         _target_: lightning.pytorch.callbacks.RichProgressBar                 
+│       speed_monitor:                                                          
+│         _target_: rl4co.utils.callbacks.speed_monitor.SpeedMonitor            
+│         intra_step_time: true                                                 
+│         inter_step_time: true                                                 
+│         epoch_time: true                                                      
+│       learning_rate_monitor:                                                  
+│         _target_: lightning.pytorch.callbacks.LearningRateMonitor             
+│         logging_interval: epoch                                               
+│                                                                               
+├── logger
+│   └── wandb:                                                                  
+│         _target_: lightning.pytorch.loggers.wandb.WandbLogger                 
+│         save_dir: /home/athota/parco/logs/train/runs/hcvrp_n100_m7/parco_k2/20
+│         offline: true                                                         
+│         id: null                                                              
+│         anonymous: null                                                       
+│         project: parco-hcvrp                                                  
+│         log_model: false                                                      
+│         prefix: ''                                                            
+│         group: hcvrp_n100_m7                                                  
+│         tags:                                                                 
+│         - parco                                                               
+│         - hcvrp                                                               
+│         - communication                                                       
+│         - kparallel                                                           
+│         job_type: ''                                                          
+│         name: parco_k2                                                        
+│                                                                               
+├── trainer
+│   └── _target_: rl4co.utils.trainer.RL4COTrainer                              
+│       default_root_dir: /home/athota/parco/logs/train/runs/hcvrp_n100_m7/parco
+│       gradient_clip_val: 1.0                                                  
+│       accelerator: gpu                                                        
+│       precision: 16-mixed                                                     
+│       strategy:                                                               
+│         _target_: lightning.pytorch.strategies.DDPStrategy                    
+│         find_unused_parameters: true                                          
+│         gradient_as_bucket_view: true                                         
+│       check_val_every_n_epoch: 1                                              
+│       deterministic: false                                                    
+│       max_epochs: 100                                                         
+│       accumulate_grad_batches: 8                                              
+│                                                                               
+├── paths
+│   └── root_dir: /home/athota/parco                                            
+│       data_dir: /home/athota/parco/data/                                      
+│       log_dir: /home/athota/parco/logs/                                       
+│       output_dir: /home/athota/parco/logs/train/runs/hcvrp_n100_m7/parco_k2/20
+│       work_dir: /home/athota/parco                                            
+│                                                                               
+├── extras
+│   └── ignore_warnings: false                                                  
+│       enforce_tags: true                                                      
+│       print_config: true                                                      
+│                                                                               
+├── mode
+│   └── train                                                                   
+├── tags
+│   └── ['dev']                                                                 
+├── train
+│   └── True                                                                    
+├── test
+│   └── True                                                                    
+├── compile
+│   └── False                                                                   
+├── ckpt_path
+│   └── None                                                                    
+├── seed
+│   └── 1234                                                                    
+├── matmul_precision
+│   └── medium                                                                  
+├── metrics
+│   └── train:                                                                  
+│       - loss                                                                  
+│       - reward                                                                
+│       val:                                                                    
+│       - reward                                                                
+│       test:                                                                   
+│       - reward                                                                
+│       log_on_step: true                                                       
+│                                                                               
+├── env
+│   └── _target_: parco.envs.hcvrp.HCVRPEnv                                     
+│       name: hcvrp                                                             
+│       generator_params:                                                       
+│         num_loc: 100                                                          
+│         num_agents: 7                                                         
+│       data_dir: /home/athota/parco/data/hcvrp                                 
+│       val_file:                                                               
+│       - n60_m3_seed24610.npz                                                  
+│       - n60_m5_seed24610.npz                                                  
+│       - n60_m7_seed24610.npz                                                  
+│       - n80_m3_seed24610.npz                                                  
+│       - n80_m5_seed24610.npz                                                  
+│       - n80_m7_seed24610.npz                                                  
+│       - n100_m3_seed24610.npz                                                 
+│       - n100_m5_seed24610.npz                                                 
+│       - n100_m7_seed24610.npz                                                 
+│       val_dataloader_names:                                                   
+│       - n60_m3                                                                
+│       - n60_m5                                                                
+│       - n60_m7                                                                
+│       - n80_m3                                                                
+│       - n80_m5                                                                
+│       - n80_m7                                                                
+│       - n100_m3                                                               
+│       - n100_m5                                                               
+│       - n100_m7                                                               
+│       test_file:                                                              
+│       - n60_m3_seed24610.npz                                                  
+│       - n60_m5_seed24610.npz                                                  
+│       - n60_m7_seed24610.npz                                                  
+│       - n80_m3_seed24610.npz                                                  
+│       - n80_m5_seed24610.npz                                                  
+│       - n80_m7_seed24610.npz                                                  
+│       - n100_m3_seed24610.npz                                                 
+│       - n100_m5_seed24610.npz                                                 
+│       - n100_m7_seed24610.npz                                                 
+│       test_dataloader_names:                                                  
+│       - n60_m3                                                                
+│       - n60_m5                                                                
+│       - n60_m7                                                                
+│       - n80_m3                                                                
+│       - n80_m5                                                                
+│       - n80_m7                                                                
+│       - n100_m3                                                               
+│       - n100_m5                                                               
+│       - n100_m7                                                               
+│                                                                               
+└── generator_params
+    └── num_loc: 100                                                            
+        num_agents: 7                                                           
+                                                                                
+[[36m2026-10-17 10:47:56,701[0m][[34m__main__[0m][[32mINFO[0m] - Instantiating environment <parco.envs.hcvrp.HCVRPEnv>[0m
+[[36m2026-10-17 10:47:57,371[0m][[34m__main__[0m][[32mINFO[0m] - Instantiating model <parco.models.rl.PARCORLModule>[0m
+[[36m2026-10-17 10:47:57,563[0m][[34mparco.models.policy[0m][[32mINFO[0m] - Initializing default PARCOEncoder[0m
+[[36m2026-10-17 10:47:57,609[0m][[34mparco.models.policy[0m][[32mINFO[0m] - Initializing default PARCODecoder[0m
+[[36m2026-10-17 10:47:57,671[0m][[34mrl4co.data.transforms[0m][[32mINFO[0m] - Features not passed, defaulting to 'locs'[0m
+[[36m2026-10-17 10:47:57,672[0m][[34mrl4co.data.transforms[0m][[32mINFO[0m] - Features not passed, defaulting to 'locs'[0m
+[[36m2026-10-17 10:47:57,673[0m][[34m__main__[0m][[32mINFO[0m] - Instantiating callbacks...[0m
+[[36m2026-10-17 10:47:57,673[0m][[34mrl4co.utils.instantiators[0m][[32mINFO[0m] - Instantiating callback <lightning.pytorch.callbacks.ModelCheckpoint>[0m
+[[36m2026-10-17 10:47:57,680[0m][[34mrl4co.utils.instantiators[0m][[32mINFO[0m] - Instantiating callback <lightning.pytorch.callbacks.RichModelSummary>[0m
+[[36m2026-10-17 10:47:57,680[0m][[34mrl4co.utils.instantiators[0m][[32mINFO[0m] - Instantiating callback <lightning.pytorch.callbacks.RichProgressBar>[0m
+[[36m2026-10-17 10:47:57,680[0m][[34mrl4co.utils.instantiators[0m][[32mINFO[0m] - Instantiating callback <rl4co.utils.callbacks.speed_monitor.SpeedMonitor>[0m
+[[36m2026-10-17 10:47:57,682[0m][[34mrl4co.utils.instantiators[0m][[32mINFO[0m] - Instantiating callback <lightning.pytorch.callbacks.LearningRateMonitor>[0m
+[[36m2026-10-17 10:47:57,683[0m][[34m__main__[0m][[32mINFO[0m] - Instantiating loggers...[0m
+[[36m2026-10-17 10:47:57,683[0m][[34mrl4co.utils.instantiators[0m][[32mINFO[0m] - Instantiating logger <lightning.pytorch.loggers.wandb.WandbLogger>[0m
+[[36m2026-10-17 10:47:57,688[0m][[34m__main__[0m][[32mINFO[0m] - Instantiating trainer...[0m
+[[36m2026-10-17 10:47:57,708[0m][[34m__main__[0m][[32mINFO[0m] - Logging hyperparameters![0m
+[[36m2026-10-17 10:48:00,007[0m][[34m__main__[0m][[32mINFO[0m] - Starting training![0m
+[[36m2026-10-17 10:48:01,334[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Setting up batch sizes for train/val/test[0m
+[[36m2026-10-17 10:48:01,334[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Setting up datasets[0m
+[[36m2026-10-17 10:48:03,896[0m][[34mrl4co.envs.common.base[0m][[32mINFO[0m] - Loading val dataset from ['/home/athota/parco/data/hcvrp/n60_m3_seed24610.npz', '/home/athota/parco/data/hcvrp/n60_m5_seed24610.npz', '/home/athota/parco/data/hcvrp/n60_m7_seed24610.npz', '/home/athota/parco/data/hcvrp/n80_m3_seed24610.npz', '/home/athota/parco/data/hcvrp/n80_m5_seed24610.npz', '/home/athota/parco/data/hcvrp/n80_m7_seed24610.npz', '/home/athota/parco/data/hcvrp/n100_m3_seed24610.npz', '/home/athota/parco/data/hcvrp/n100_m5_seed24610.npz', '/home/athota/parco/data/hcvrp/n100_m7_seed24610.npz'][0m
+[[36m2026-10-17 10:48:04,421[0m][[34mrl4co.envs.common.base[0m][[32mINFO[0m] - Loading test dataset from ['/home/athota/parco/data/hcvrp/n60_m3_seed24610.npz', '/home/athota/parco/data/hcvrp/n60_m5_seed24610.npz', '/home/athota/parco/data/hcvrp/n60_m7_seed24610.npz', '/home/athota/parco/data/hcvrp/n80_m3_seed24610.npz', '/home/athota/parco/data/hcvrp/n80_m5_seed24610.npz', '/home/athota/parco/data/hcvrp/n80_m7_seed24610.npz', '/home/athota/parco/data/hcvrp/n100_m3_seed24610.npz', '/home/athota/parco/data/hcvrp/n100_m5_seed24610.npz', '/home/athota/parco/data/hcvrp/n100_m7_seed24610.npz'][0m
+[[36m2026-10-17 10:48:04,640[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Instantiating optimizer <Adam>[0m
+[[36m2026-10-17 10:48:04,640[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Instantiating LR scheduler <MultiStepLR>[0m
+┏━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━┳━━━━━┳━━━━┓
+┃    ┃ Name                                                    ┃ T… ┃ Pa… ┃ M… ┃
+┡━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━╇━━━━━╇━━━━┩
+│ 0  │ env                                                     │ H… │   0 │ t… │
+│ 1  │ policy                                                  │ P… │ 1.3 │ t… │
+│    │                                                         │    │   M │    │
+│ 2  │ policy.encoder                                          │ P… │ 839 │ t… │
+│    │                                                         │    │   K │    │
+│ 3  │ policy.encoder.init_embedding                           │ H… │ 50… │ t… │
+│    │                                                         │    │   K │    │
+│ 4  │ policy.encoder.init_embedding.init_embed_depot          │ L… │ 256 │ t… │
+│ 5  │ policy.encoder.init_embedding.pos_encoder               │ P… │   0 │ t… │
+│ 6  │ policy.encoder.init_embedding.pos_embedding_proj        │ L… │ 16… │ t… │
+│    │                                                         │    │   K │    │
+│ 7  │ policy.encoder.init_embedding.init_embed_agents         │ L… │ 512 │ t… │
+│ 8  │ policy.encoder.init_embedding.init_embed_depot_agents   │ L… │ 32… │ t… │
+│    │                                                         │    │   K │    │
+│ 9  │ policy.encoder.init_embedding.init_embed_clients        │ L… │ 640 │ t… │
+│ 10 │ policy.encoder.layers                                   │ S… │ 788 │ t… │
+│    │                                                         │    │   K │    │
+│ 11 │ policy.encoder.layers.0                                 │ T… │ 262 │ t… │
+│    │                                                         │    │   K │    │
+│ 12 │ policy.encoder.layers.0.norm_attn                       │ N… │ 128 │ t… │
+│ 13 │ policy.encoder.layers.0.attention                       │ M… │ 66… │ t… │
+│    │                                                         │    │   K │    │
+│ 14 │ policy.encoder.layers.0.norm_ffn                        │ N… │ 128 │ t… │
+│ 15 │ policy.encoder.layers.0.ffn                             │ P… │ 196 │ t… │
+│    │                                                         │    │   K │    │
+│ 16 │ policy.encoder.layers.1                                 │ T… │ 262 │ t… │
+│    │                                                         │    │   K │    │
+│ 17 │ policy.encoder.layers.1.norm_attn                       │ N… │ 128 │ t… │
+│ 18 │ policy.encoder.layers.1.attention                       │ M… │ 66… │ t… │
+│    │                                                         │    │   K │    │
+│ 19 │ policy.encoder.layers.1.norm_ffn                        │ N… │ 128 │ t… │
+│ 20 │ policy.encoder.layers.1.ffn                             │ P… │ 196 │ t… │
+│    │                                                         │    │   K │    │
+│ 21 │ policy.encoder.layers.2                                 │ T… │ 262 │ t… │
+│    │                                                         │    │   K │    │
+│ 22 │ policy.encoder.layers.2.norm_attn                       │ N… │ 128 │ t… │
+│ 23 │ policy.encoder.layers.2.attention                       │ M… │ 66… │ t… │
+│    │                                                         │    │   K │    │
+│ 24 │ policy.encoder.layers.2.norm_ffn                        │ N… │ 128 │ t… │
+│ 25 │ policy.encoder.layers.2.ffn                             │ P… │ 196 │ t… │
+│    │                                                         │    │   K │    │
+│ 26 │ policy.encoder.norm                                     │ N… │ 128 │ t… │
+│ 27 │ policy.encoder.norm.normalizer                          │ R… │ 128 │ t… │
+│ 28 │ policy.decoder                                          │ P… │ 411 │ t… │
+│    │                                                         │    │   K │    │
+│ 29 │ policy.decoder.context_embedding                        │ H… │ 329 │ t… │
+│    │                                                         │    │   K │    │
+│ 30 │ policy.decoder.context_embedding.proj_agent_feats       │ L… │ 384 │ t… │
+│ 31 │ policy.decoder.context_embedding.proj_global_feats      │ L… │ 128 │ t… │
+│ 32 │ policy.decoder.context_embedding.project_context        │ L… │ 65… │ t… │
+│    │                                                         │    │   K │    │
+│ 33 │ policy.decoder.context_embedding.communication_layers   │ S… │ 262 │ t… │
+│    │                                                         │    │   K │    │
+│ 34 │ policy.decoder.context_embedding.communication_layers.0 │ T… │ 262 │ t… │
+│    │                                                         │    │   K │    │
+│ 35 │ policy.decoder.context_embedding.norm                   │ N… │ 128 │ t… │
+│ 36 │ policy.decoder.context_embedding.norm.normalizer        │ R… │ 128 │ t… │
+│ 37 │ policy.decoder.dynamic_embedding                        │ S… │   0 │ t… │
+│ 38 │ policy.decoder.pointer                                  │ P… │ 16… │ t… │
+│    │                                                         │    │   K │    │
+│ 39 │ policy.decoder.pointer.project_out                      │ L… │ 16… │ t… │
+│    │                                                         │    │   K │    │
+│ 40 │ policy.decoder.project_node_embeddings                  │ L… │ 49… │ t… │
+│    │                                                         │    │   K │    │
+│ 41 │ policy.decoder.project_fixed_context                    │ L… │ 16… │ t… │
+│    │                                                         │    │   K │    │
+│ 42 │ baseline                                                │ N… │   0 │ t… │
+│ 43 │ projection_head                                         │ M… │ 33… │ t… │
+│    │                                                         │    │   K │    │
+│ 44 │ projection_head.0                                       │ L… │ 16… │ t… │
+│    │                                                         │    │   K │    │
+│ 45 │ projection_head.1                                       │ R… │   0 │ t… │
+│ 46 │ projection_head.2                                       │ L… │ 16… │ t… │
+│    │                                                         │    │   K │    │
+└────┴─────────────────────────────────────────────────────────┴────┴─────┴────┘
+Trainable params: 1.3 M                                                         
+Non-trainable params: 0                                                         
+Total params: 1.3 M                                                             
+Total estimated model params size (MB): 5                                       
+Modules in train mode: 79                                                       
+Modules in eval mode: 0                                                         
+[[36m2026-10-17 11:01:59,865[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 11:14:28,938[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 11:26:58,523[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 11:39:21,689[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 11:51:47,949[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 12:04:16,451[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 12:16:44,944[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 12:29:07,440[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 12:42:23,328[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 12:54:47,820[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 13:07:11,959[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 13:19:37,522[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 13:32:36,276[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 13:45:02,133[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 13:58:03,514[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 14:10:58,141[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 14:25:24,746[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 14:40:05,164[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 14:54:25,061[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 15:08:39,524[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 15:22:10,421[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 15:35:43,468[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 15:49:47,948[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 16:03:13,411[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 16:15:44,677[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 16:29:38,598[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 16:43:00,013[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 16:56:24,572[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 17:09:17,249[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 17:21:42,432[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 17:34:08,770[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 17:46:30,987[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 17:59:01,006[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 18:11:49,250[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 18:24:18,631[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 18:36:41,485[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 18:49:10,456[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 19:01:36,502[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 19:14:07,907[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 19:26:33,033[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 19:39:02,360[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 19:51:30,361[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 20:03:59,675[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 20:16:26,246[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 20:29:06,610[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 20:41:38,923[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 20:55:10,712[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 21:07:34,259[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 21:19:56,889[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 21:32:18,926[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 21:46:19,064[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 21:59:05,222[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 22:12:10,101[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 22:25:04,590[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 22:37:34,288[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 22:50:49,646[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 23:03:15,560[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 23:16:09,776[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 23:29:48,887[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 23:42:23,550[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-17 23:54:51,890[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-18 00:07:34,277[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-18 00:20:06,553[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-18 00:32:33,611[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-18 00:45:04,053[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-18 00:57:39,318[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-18 01:10:17,528[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-18 01:22:42,815[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-18 01:35:46,812[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-18 01:48:33,859[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-18 02:01:13,064[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-18 02:13:38,296[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-18 02:26:17,685[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-18 02:38:49,748[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-18 02:51:25,863[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-18 03:04:25,274[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-18 03:18:17,866[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-18 03:31:01,397[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-18 03:43:30,388[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-18 03:56:01,723[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-18 04:08:27,034[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-18 04:21:39,017[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-18 04:35:09,665[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-18 04:47:32,663[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-18 04:59:59,436[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-18 05:13:33,180[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-18 05:26:02,016[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-18 05:38:28,384[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-18 05:51:17,023[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-18 06:04:24,649[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-18 06:17:45,985[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-18 06:30:15,126[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-18 06:42:40,682[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-18 06:55:55,758[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-18 07:09:10,756[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-18 07:22:33,539[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-18 07:35:48,660[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-18 07:49:13,462[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+[[36m2026-10-18 08:02:17,701[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Generating training dataset for next epoch...[0m
+Epoch 99/99 ━━━━━━━━━━━━━━━ 1042/1042 0:08:28 •       2.36it/s v_num: 021g      
+                                      0:00:00                  train/reward:    
+                                                               -6.050           
+                                                               train/halting_ra…
+                                                               0.000 train/loss:
+                                                               -0.189           
+                                                               val/reward/n60_m…
+                                                               -7.658           
+                                                               val/halting_rati…
+                                                               0.000            
+                                                               val/reward/n60_m…
+                                                               -4.723           
+                                                               val/halting_rati…
+                                                               0.000            
+                                                               val/reward/n60_m…
+                                                               -3.544           
+                                                               val/halting_rati…
+                                                               0.000            
+                                                               val/reward/n80_m…
+                                                               -9.773           
+                                                               val/halting_rati…
+                                                               0.000            
+                                                               val/reward/n80_m…
+                                                               -5.947           
+                                                               val/halting_rati…
+                                                               0.000            
+                                                               val/reward/n80_m…
+                                                               -4.398           
+                                                               val/halting_rati…
+                                                               0.000            
+                                                               val/reward/n100_…
+                                                               -11.596          
+                                                               val/halting_rati…
+                                                               0.000            
+                                                               val/reward/n100_…
+                                                               -6.979           
+                                                               val/halting_rati…
+                                                               0.000            
+                                                               val/reward/n100_…
+                                                               -5.121           
+                                                               val/halting_rati…
+                                                               0.000            
+[[36m2026-10-18 08:15:34,869[0m][[34m__main__[0m][[32mINFO[0m] - Starting testing![0m
+[[36m2026-10-18 08:15:34,889[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Setting up batch sizes for train/val/test[0m
+[[36m2026-10-18 08:15:34,890[0m][[34mrl4co.models.rl.common.base[0m][[32mINFO[0m] - Setting up datasets[0m
+[[36m2026-10-18 08:15:37,131[0m][[34mrl4co.envs.common.base[0m][[32mINFO[0m] - Loading val dataset from ['/home/athota/parco/data/hcvrp/n60_m3_seed24610.npz', '/home/athota/parco/data/hcvrp/n60_m5_seed24610.npz', '/home/athota/parco/data/hcvrp/n60_m7_seed24610.npz', '/home/athota/parco/data/hcvrp/n80_m3_seed24610.npz', '/home/athota/parco/data/hcvrp/n80_m5_seed24610.npz', '/home/athota/parco/data/hcvrp/n80_m7_seed24610.npz', '/home/athota/parco/data/hcvrp/n100_m3_seed24610.npz', '/home/athota/parco/data/hcvrp/n100_m5_seed24610.npz', '/home/athota/parco/data/hcvrp/n100_m7_seed24610.npz'][0m
+[[36m2026-10-18 08:15:37,276[0m][[34mrl4co.envs.common.base[0m][[32mINFO[0m] - Loading test dataset from ['/home/athota/parco/data/hcvrp/n60_m3_seed24610.npz', '/home/athota/parco/data/hcvrp/n60_m5_seed24610.npz', '/home/athota/parco/data/hcvrp/n60_m7_seed24610.npz', '/home/athota/parco/data/hcvrp/n80_m3_seed24610.npz', '/home/athota/parco/data/hcvrp/n80_m5_seed24610.npz', '/home/athota/parco/data/hcvrp/n80_m7_seed24610.npz', '/home/athota/parco/data/hcvrp/n100_m3_seed24610.npz', '/home/athota/parco/data/hcvrp/n100_m5_seed24610.npz', '/home/athota/parco/data/hcvrp/n100_m7_seed24610.npz'][0m
+┏━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┓
+┃    Test metric    ┃   DataLoader 0    ┃   DataLoader 1   ┃   DataLoader 2    ┃
+┡━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━┩
+│ test/halting_rat… │                   │                  │                   │
+│ test/halting_rat… │                   │                  │                   │
+│ test/halting_rat… │                   │                  │                   │
+│ test/halting_rat… │        0.0        │                  │                   │
+│ test/halting_rat… │                   │       0.0        │                   │
+│ test/halting_rat… │                   │                  │        0.0        │
+│ test/halting_rat… │                   │                  │                   │
+│ test/halting_rat… │                   │                  │                   │
+│ test/halting_rat… │                   │                  │                   │
+│ test/reward/n100… │                   │                  │                   │
+│ test/reward/n100… │                   │                  │                   │
+│ test/reward/n100… │                   │                  │                   │
+│ test/reward/n60_… │ -7.6577849388122… │                  │                   │
+│ test/reward/n60_… │                   │ -4.712620258331… │                   │
+│ test/reward/n60_… │                   │                  │ -3.5458812713623… │
+│ test/reward/n80_… │                   │                  │                   │
+│ test/reward/n80_… │                   │                  │                   │
+│ test/reward/n80_… │                   │                  │                   │
+└───────────────────┴───────────────────┴──────────────────┴───────────────────┘
+┏━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┓
+┃    Test metric    ┃   DataLoader 3    ┃   DataLoader 4   ┃   DataLoader 5    ┃
+┡━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━┩
+│ test/halting_rat… │                   │                  │                   │
+│ test/halting_rat… │                   │                  │                   │
+│ test/halting_rat… │                   │                  │                   │
+│ test/halting_rat… │                   │                  │                   │
+│ test/halting_rat… │                   │                  │                   │
+│ test/halting_rat… │                   │                  │                   │
+│ test/halting_rat… │        0.0        │                  │                   │
+│ test/halting_rat… │                   │       0.0        │                   │
+│ test/halting_rat… │                   │                  │        0.0        │
+│ test/reward/n100… │                   │                  │                   │
+│ test/reward/n100… │                   │                  │                   │
+│ test/reward/n100… │                   │                  │                   │
+│ test/reward/n60_… │                   │                  │                   │
+│ test/reward/n60_… │                   │                  │                   │
+│ test/reward/n60_… │                   │                  │                   │
+│ test/reward/n80_… │ -9.7979459762573… │                  │                   │
+│ test/reward/n80_… │                   │ -5.956313610076… │                   │
+│ test/reward/n80_… │                   │                  │ -4.3991637229919… │
+└───────────────────┴───────────────────┴──────────────────┴───────────────────┘
+┏━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┓
+┃    Test metric    ┃   DataLoader 6    ┃   DataLoader 7   ┃   DataLoader 8    ┃
+┡━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━┩
+│ test/halting_rat… │        0.0        │                  │                   │
+│ test/halting_rat… │                   │       0.0        │                   │
+│ test/halting_rat… │                   │                  │        0.0        │
+│ test/halting_rat… │                   │                  │                   │
+│ test/halting_rat… │                   │                  │                   │
+│ test/halting_rat… │                   │                  │                   │
+│ test/halting_rat… │                   │                  │                   │
+│ test/halting_rat… │                   │                  │                   │
+│ test/halting_rat… │                   │                  │                   │
+│ test/reward/n100… │ -11.605788230895… │                  │                   │
+│ test/reward/n100… │                   │ -6.981004714965… │                   │
+│ test/reward/n100… │                   │                  │ -5.1258535385131… │
+│ test/reward/n60_… │                   │                  │                   │
+│ test/reward/n60_… │                   │                  │                   │
+│ test/reward/n60_… │                   │                  │                   │
+│ test/reward/n80_… │                   │                  │                   │
+│ test/reward/n80_… │                   │                  │                   │
+│ test/reward/n80_… │                   │                  │                   │
+└───────────────────┴───────────────────┴──────────────────┴───────────────────┘
+Testing ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 14/14 0:00:02 • 0:00:00 5.54it/s 
+[[36m2026-10-18 08:18:43,086[0m][[34m__main__[0m][[32mINFO[0m] - Best ckpt path: /home/athota/parco/logs/train/runs/hcvrp_n100_m7/parco_k2/2026-10-17_10-47-56/checkpoints/epoch_096.ckpt[0m
+[[36m2026-10-18 08:18:43,088[0m][[34mrl4co.utils.utils[0m][[32mINFO[0m] - Output dir: /home/athota/parco/logs/train/runs/hcvrp_n100_m7/parco_k2/2026-10-17_10-47-56[0m
+[[36m2026-10-18 08:18:43,089[0m][[34mrl4co.utils.utils[0m][[32mINFO[0m] - Closing loggers...[0m
+[[36m2026-10-18 08:18:43,089[0m][[34mrl4co.utils.utils[0m][[32mINFO[0m] - Closing wandb![0m
+[[36m2026-10-18 08:18:43,106[0m][[34mrl4co.utils.utils[0m][[32mINFO[0m] - Metric name is None! Skipping metric value retrieval...[0m
