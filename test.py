@@ -6,6 +6,7 @@ import warnings
 import torch
 
 from rl4co.data.utils import load_npz_to_tensordict
+from rl4co.utils.ops import unbatchify
 from tqdm.auto import tqdm
 
 from parco.envs import FFSPEnv, HCVRPEnv, OMDCPDPEnv
@@ -94,9 +95,6 @@ if __name__ == "__main__":
         assert (
             sample_size is not None
         ), "Sample size must be specified for sampling decoding with --sample_size"
-        assert (
-            batch_size == 1
-        ), "Only batch_size=1 is supported for sampling decoding currently"
 
     # exclude all the files with `sol` (solution files)
     data_paths = [f for f in data_paths if "sol" not in f]
@@ -166,7 +164,7 @@ if __name__ == "__main__":
                         costs.extend(-out["reward"])
                     else:
                         costs.extend(
-                            -out["reward"].reshape(-1, sample_size).max(dim=-1)[0]
+                            -unbatchify(out["reward"], sample_size).max(dim=-1)[0]
                         )
                     inference_times.append(inference_time)
                     eval_steps.append(out["steps"])
@@ -176,4 +174,11 @@ if __name__ == "__main__":
                 f"Per step inference time: {sum(inference_times)/len(inference_times):.4f}s"
             )
             print(f"Total inference time: {sum(inference_times):.4f}s")
-            print(f"Average eval steps: {sum(eval_steps)/len(eval_steps):.2f}")
+            avg_steps = sum(eval_steps) / len(eval_steps)
+            n_samples = sample_size if "sampling" in decode_type else 1
+            print(f"Average eval steps: {avg_steps:.2f}")
+            print(f"Samples per instance: {n_samples}")
+            print(
+                "Decoder passes per instance: "
+                f"{avg_steps * n_samples:.2f}"
+            )
