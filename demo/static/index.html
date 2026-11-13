@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HCVRP delivery simulator</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<header>
+  <h1>HCVRP delivery simulator</h1>
+  <span class="sub">Place orders, then watch each trained checkpoint plan the fleet</span>
+  <span class="status">backend <b id="backend">…</b> <span id="backendNote" class="badge"></span></span>
+</header>
+
+<div class="wrap">
+
+  <!-- ------------------------------------------------ controls -->
+  <div>
+    <div class="panel">
+      <h2>Scenario</h2>
+      <div class="row">
+        <div style="flex:1">
+          <label for="nOrders">Orders</label>
+          <input type="number" id="nOrders" min="1" max="200" value="40">
+        </div>
+        <div style="flex:1">
+          <label for="nVeh">Vehicles</label>
+          <input type="number" id="nVeh" min="1" max="12" value="4">
+        </div>
+      </div>
+      <label for="layout">Layout</label>
+      <select id="layout"></select>
+      <div class="row" style="margin-top:9px">
+        <div style="flex:1">
+          <label for="seed">Seed</label>
+          <input type="number" id="seed" value="7">
+        </div>
+        <div style="flex:0 0 auto; align-self:flex-end">
+          <button id="reroll" title="New random seed">Shuffle</button>
+        </div>
+      </div>
+      <div class="btnrow">
+        <button id="gen" class="wide">Generate scenario</button>
+        <button id="clear">Clear orders</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Fleet</h2>
+      <div id="vehicles"></div>
+      <div class="btnrow">
+        <button id="addVeh">Add vehicle</button>
+        <button id="delVeh">Remove last</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Planners</h2>
+      <div class="methods" id="methods"></div>
+      <div class="btnrow">
+        <button id="plan" class="primary wide">Plan routes</button>
+      </div>
+      <div id="msg"></div>
+    </div>
+  </div>
+
+  <!-- ------------------------------------------------ map -->
+  <div class="panel">
+    <h2>Map <span id="mapTitle" style="text-transform:none;letter-spacing:0;color:var(--ink)"></span></h2>
+    <svg id="map" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="player">
+      <button id="play" disabled>▶ Play</button>
+      <input type="range" id="scrub" min="0" max="1000" value="1000" disabled>
+      <span class="clock" id="clock">—</span>
+    </div>
+    <div class="legend">
+      <span><i style="background:#12304A"></i> depot</span>
+      <span><i style="background:#9AA8B5;border-radius:50%"></i> pending order</span>
+      <span><i style="background:#1C7A4A;border-radius:50%"></i> delivered</span>
+      <span id="legendVeh"></span>
+    </div>
+    <p class="maphint">
+      <kbd>click</kbd> empty space to add an order ·
+      <kbd>click</kbd> an order to delete it ·
+      <kbd>drag</kbd> the depot to move it. Circle size shows demand.
+    </p>
+  </div>
+
+  <!-- ------------------------------------------------ results -->
+  <div class="panel results">
+    <h2>Comparison</h2>
+    <div id="results"><p class="maphint">Plan the routes to compare the checkpoints.</p></div>
+    <div id="perVehicle" class="bars"></div>
+  </div>
+
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
