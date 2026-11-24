@@ -1,0 +1,5 @@
+_figs/
+*_prev*.jpg
+crop*.jpg
+a1-*.jpg
+__pycache__/
