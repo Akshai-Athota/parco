@@ -239,27 +239,28 @@ pres.addSection({ title: "Questions" });
 }
 {
   const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Questions" });
-  s.addText("Three experiments", { placeholder: "title" });
+  s.addText("Four experiments", { placeholder: "title" });
   s.addText("All six finished runs share one recipe: 6 GPUs, effective batch 768, lr 1e-4, 100 epochs", { placeholder: "body" });
   table(s, [
     [{ text: "", options: TH }, { text: "Experiment", options: TH }, { text: "What we change", options: TH }, { text: "What it answers", options: TH }],
     ["1", { text: "The k parameter", options: { bold: true } }, "Pairs committed per decoder pass, k = 1 … M", "Q1 — the cost of parallelism"],
     ["2", { text: "Tanh logit clipping", options: { bold: true } }, "φ(z) = g·tanh(z/τ): separate gain from saturation", "Q2 — is the clip helping?"],
     ["3", { text: "Equal inference budget", options: { bold: true } }, "Give every model the same decoder passes", "Q3 — is the win bought?"],
+    ["4", { text: "Homogeneous-fleet CVRP", options: { bold: true } }, "New environment and generator, zero model changes", "Does any of this need heterogeneity?"],
   ], MX, 1.8, 12.1, [0.6, 2.6, 4.6, 4.3], 13);
-  card(s, MX, 3.6, 5.9, 1.6, { fill: "E8F3F0", line: "CFE4DE" });
-  head(s, "One control for everything", MX + .28, 3.8, 5.3, P.accent3, 15);
+  card(s, MX, 3.9, 5.9, 1.6, { fill: "E8F3F0", line: "CFE4DE" });
+  head(s, "One control for everything", MX + .28, 4.1, 5.3, P.accent3, 15);
   para(s, "Stock PARCO, trained as arm (a) of the tanh sweep on the same six GPUs. It is both the control for experiment 2 and the baseline for experiment 1. Mean cost 6.1264.",
-    MX + .28, 4.18, 5.3, 1.1, 12.5);
-  card(s, 6.85, 3.6, 5.85, 1.6, { fill: "F2F6F9", line: "DCE5EB" });
-  head(s, "Pipeline validated first", 7.1, 3.8, 5.3, P.dk1, 15);
+    MX + .28, 4.48, 5.3, 1.1, 12.5);
+  card(s, 6.85, 3.9, 5.85, 1.6, { fill: "F2F6F9", line: "DCE5EB" });
+  head(s, "Pipeline validated first", 7.1, 4.1, 5.3, P.dk1, 15);
   para(s, "The paper prints 10.98 at N = 100, M = 3. Running the authors' released checkpoint through our own evaluation code gives 10.977 — same weights, three decimals.",
-    7.1, 4.18, 5.3, 1.1, 12.5);
-  card(s, MX, 5.4, CW, 1.3, { fill: "FDF3E6", line: "F2DFC2" });
+    7.1, 4.48, 5.3, 1.1, 12.5);
+  card(s, MX, 5.7, CW, 1.1, { fill: "FDF3E6", line: "F2DFC2" });
   rich(s, [
     { text: "Two further ideas are not in this talk.  ", options: { bold: true, color: "8A5B06" } },
-    { text: "An explicit wait action and a dynamic re-encoding variant both exceeded the cluster's 72-hour job limit before producing a single evaluation. They are budget findings, not results, so we report them only as limitations.", options: {} },
-  ], MX + .28, 5.56, CW - .56, 1.0, 12.5);
+    { text: "An explicit wait action and a dynamic re-encoding variant both exceeded the 72-hour job limit before producing a single evaluation — budget findings, not results, so they appear only in the limitations.", options: {} },
+  ], MX + .28, 5.84, CW - .56, .85, 12.5);
   s.addNotes("Flag early and honestly that two ideas did not finish, so nobody wonders where they went. They return once, in the limitations slide.");
 }
 
@@ -568,6 +569,61 @@ pres.addSection({ title: "Experiment 3" });
   s.addNotes("Volunteer the caveat before anyone asks. The flat rows need explaining, and the explanation is that sampling is weak for all models.");
 }
 
+/* ============================================= 5b · EXPERIMENT 4 — CVRP */
+pres.addSection({ title: "Experiment 4" });
+{
+  const s = pres.addSlide({ masterName: "SECTION", sectionTitle: "Experiment 4" });
+  s.addText("Experiment 4", { placeholder: "eyebrow" });
+  s.addText("Does any of this need heterogeneity?", { placeholder: "title" });
+  s.addText("Transfer the architecture to a homogeneous fleet — same capacity, same speed for every vehicle", { placeholder: "body" });
+}
+{
+  const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Experiment 4" });
+  s.addText("Experiment 4 · homogeneous-fleet CVRP", { placeholder: "title" });
+  s.addText("A new environment and generator only — the model is untouched", { placeholder: "body" });
+
+  card(s, MX, 1.72, 5.9, 1.95, { fill: "F2F6F9", line: "DCE5EB" });
+  head(s, "What changed, and what did not", MX + .28, 1.9, 5.3, P.dk1, 15);
+  bullets(s, [
+    "Every vehicle shares capacity 50 and unit speed — the fleet is uniform",
+    "Zero model changes: same encoder, decoder and conflict handler",
+    "Still min-max, so the objective is the longest route LENGTH",
+  ], MX + .28, 2.28, 5.3, 1.3, 12.5);
+
+  table(s, [
+    [{ text: "Test set", options: TH }, { text: "M = 3", options: TH }, { text: "M = 5", options: TH }, { text: "M = 7", options: TH }],
+    ["N = 50", "3.779", "2.463", "2.190"],
+    ["N = 100", "6.163", "3.829", "2.999"],
+    [{ text: "N = 200 †", options: { bold: true } }, { text: "28.487", options: { bold: true, color: BAD } }, "6.977", "4.898"],
+  ], MX, 3.85, 5.9, [1.8, 1.4, 1.35, 1.35], 12.5);
+  para(s, "† zero-shot at twice the largest training size. Trained on N ∈ [50, 100].", MX, 5.3, 5.9, .4, 11.5, MUTED);
+
+  card(s, MX, 5.75, 5.9, 1.05, { fill: "E8F3F0", line: "CFE4DE" });
+  rich(s, [
+    { text: "The architecture transfers.  ", options: { bold: true, color: P.accent3 } },
+    { text: "Parallel decoding is not something that only works when vehicles differ from one another.", options: {} },
+  ], MX + .25, 5.9, 5.4, .8, 12.5);
+
+  card(s, 6.95, 1.72, 5.75, 3.62, { fill: "FDECE4", line: "F6D6C6" });
+  head(s, "Why M = 3 collapses at N = 200", 7.2, 1.9, 5.2, P.accent1, 15);
+  para(s, "28.487 where roughly 11–12 is expected. The tempting reading is “N = 200 is too big”, but M = 5 and M = 7 are fine at the same N.", 7.2, 2.28, 5.2, .8, 12.5);
+  rich(s, [
+    { text: "The axis that matters is customers per vehicle, not N.  ", options: { bold: true, color: P.dk1 } },
+    { text: "Training spans 7 (N=50, M=7) to 33 (N=100, M=3). At N = 200:", options: {} },
+  ], 7.2, 3.08, 5.2, .75, 12.5);
+  table(s, [
+    [{ text: "Fleet", options: TH }, { text: "Cust./vehicle", options: TH }, { text: "vs training", options: TH }, { text: "Result", options: TH }],
+    ["M = 7", "28.6", "in range", "4.898  fine"],
+    ["M = 5", "40.0", "1.2× over", "6.977  elevated"],
+    [{ text: "M = 3", options: { bold: true } }, { text: "66.7", options: { bold: true } }, { text: "2.0× over", options: { bold: true, color: BAD } }, { text: "28.487  collapse", options: { bold: true, color: BAD } }],
+  ], 7.2, 3.9, 5.2, [1.0, 1.5, 1.3, 1.4], 11.5);
+
+  card(s, 6.95, 5.5, 5.75, 1.3, { fill: "F2F6F9", line: "DCE5EB" });
+  head(s, "Not comparable with POMO or AM", 7.2, 5.66, 5.2, P.dk1, 14.5);
+  para(s, "Those minimise the total distance of a single vehicle. We minimise the longest of M routes, so the numbers answer a different question and cannot be placed in the same table.", 7.2, 6.0, 5.2, .9, 12);
+  s.addNotes("CVRP finished and has results, unlike the wait action. The customers-per-vehicle framing is the real explanation for the zero-shot failure — M=7 at N=200 is still in distribution, which is why it holds up.");
+}
+
 /* ========================================================= 6 · CLOSING */
 pres.addSection({ title: "Conclusions" });
 {
@@ -593,7 +649,7 @@ pres.addSection({ title: "Conclusions" });
   card(s, MX, 5.3, CW, 1.1, { fill: "E8F3F0", line: "CFE4DE" });
   rich(s, [
     { text: "The conflict handler is not free.  ", options: { bold: true, color: P.accent3 } },
-    { text: "Replacing it with explicit masking and committing two agents per pass beats PARCO on solution quality on every test set while using 34% fewer decoder passes and 16% less training time — and the gain grows with fleet size.", options: {} },
+    { text: "Replacing it with explicit masking and committing two agents per pass beats PARCO on every test set while using 34% fewer decoder passes and 16% less training time. Experiment 4 is absent from this table on purpose: homogeneous CVRP is a different problem, so its costs are not comparable with these.", options: {} },
   ], MX + .3, 5.46, CW - .6, .85, 13);
   s.addNotes("One table, everything in it. Tanh passes come from the budget run's narrower batch, so they read slightly lower.");
 }
