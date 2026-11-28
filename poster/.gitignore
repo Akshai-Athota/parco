@@ -3,3 +3,6 @@ _figs/
 crop*.jpg
 a1-*.jpg
 __pycache__/
+_figs_v2/
+v2prev*.jpg
+v2crop*.jpg
